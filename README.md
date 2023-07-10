@@ -18,6 +18,8 @@ It is not intended as an exhaustive repository of all possible methods.
 * arthorian quest as is
 * filtering
 
+For now see: https://github.com/matteoferla/EV-D68-3C-protease
+
 ## Minor
 
 ### Zinc data
