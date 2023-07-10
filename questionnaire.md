@@ -46,3 +46,8 @@ If a shortlist is sought
 
 How much technical information would you like back?
 
+### Other side quests
+
+For a past screen, the idea of a fluorescent probe was raised for example.
+
+
