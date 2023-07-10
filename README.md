@@ -10,13 +10,13 @@ It is not intended as an exhaustive repository of all possible methods.
 
 ## To Add
 
-fragment theft
-fragment extraction
-fragment PLIP
-fragmenstein
-fragment network
-arthorian quest as is
-filtering
+* fragment theft
+* fragment extraction
+* fragment PLIP
+* fragmenstein
+* fragment network
+* arthorian quest as is
+* filtering
 
 ## Minor
 
