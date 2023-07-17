@@ -32,6 +32,11 @@ Is the substrate known? If protein but the binding isn’t know, do you need an 
 Any PDBs of interest? Should I run my code to steal ligands from homologues?
 
 ## Hits
+### Libraries
+
+What XChem libraries did you use? (I can check on Fragalysis)
+Did you use all or a subset?
+
 ### Interesting?
 Do you have hits you are very interesting in / confident in that are in the active site?
 Do any of the hits alter the protein structure? I.e. the protein is in a conformation like apo vs substrate-bound vs transition-state-bound vs product-bound vs PTM
@@ -47,8 +52,6 @@ When is your next visit scheduled?
 
 ## Vendors
 Are all standard vendors okay? Enamine REAL & co. are the go to, but you might have specific unusual vendors in mind.
-
-
 
 ## Outcome
 
