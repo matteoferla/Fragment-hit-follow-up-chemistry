@@ -8,28 +8,61 @@ _ie._ small fragments identified crystallographically.
 
 It is not intended as an exhaustive repository of all possible methods.
 
-## To Add
-
-* fragment theft
-* fragment extraction
-* fragment PLIP
-* fragmenstein
-* fragment network
-* arthorian quest as is
-* filtering
-
 For now see: https://github.com/matteoferla/EV-D68-3C-protease
 
-## Minor
+## XChem libraries
 
-### Zinc data
+[combined XChem libraries](combined-XChem-libraries.csv) is a CSV file of the compounds in the XChem libraries.
 
-`ZincInformer` in [zinc_data.py](followup/zinc_data.py) is a class to get data from a series of ZINC IDs.
+## Fragment theft
 
-### Fragalysis
+...
+
+## Fragment extraction
+
+...
+## Fragment PLIP
+
+...
+## Fragmenstein
+
+> For more [:octocat::Fragmenstein](https://github.com/matteoferla/Fragmenstein)
+
+...
+## Fragment network
+
+...
+## Arthorian quest
+
+> See [:octocat::Arthorian quest](https://github.com/matteoferla/arthorian-quest)
+> (:construction: under construction :construction:)
+
+...
+
+## Filtering
+
+...
+
+
+## CoPriNet
+
+> See [:octocat::CoPriNet](https://github.com/oxpig/CoPriNet)
+
+Predict the price for a compound.
+
+...
+
+## Fragalysis
+
+Typical folder format.
+
+### Fauxalysis
+
+### Fragalysis Upload
 
 This is just to prep.
 The upload form is at https://fragalysis.diamond.ac.uk/viewer/upload_cset/
+> :warning: The upload code exists in Fragalysis-API old version. Hunt it down.
 
 ```python
 from followup.prep_fragalysis import prep, generate_header
@@ -43,3 +76,14 @@ header = generate_header(method='Foo',
                          extras={'∆∆G': 'W. Josiah Gibbs'})
 prep(df, header, 'mol', 'id', 'foo.sdf', 'x1234', 'x1234', ['∆∆G'])
 ```
+
+## Michelanglo
+
+Upload to Fragalysis is not always okay.
+
+## Minor
+
+### Zinc data
+
+`ZincInformer` in [zinc_data.py](followup/zinc_data.py) is a class to get data from a series of ZINC IDs.
+
