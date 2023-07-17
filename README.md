@@ -1,14 +1,18 @@
 # Fragment hit follow chemistry collection
 
 > :construction: This repository is under construction :construction:
-> In notebooks/unsorted there are notebooks that need annotating.
+
 > Herein sections with the icon :construction: are incomplete.
+
+> In notebooks/unsorted there are notebooks that need annotating.
+
 
 A collection of notebooks and scripts for the prediction of follow-up compounds 
 I used for follow-up chemistry for XChem targets,
 _ie._ small fragments identified crystallographically.
 
 It is not intended as an exhaustive repository of all possible methods.
+For now I am adding my code (:construction:).
 
 Furthermore, this is narrowly focused on the hit discovery stage of drug discovery,
 before any activity data can be determined and any that does exist are deep in noise
@@ -98,7 +102,7 @@ PLIP extract interactions from PDB files.
 
 NB. `intxn` is non-standard and unclear to many, please don't copy.
 
-See also 
+See also https://github.com/matteoferla/PLIP-PyRosetta-hotspots-test
 
 > :construction: Extract
 
