@@ -111,7 +111,7 @@ plipper = SerialPLIPper(pdb_block,
                         resi=lig_resi,
                         chain=lig_chain)
 # list of dictionaries with interactions spelled out.
-details = summarize_interactions(plipper, atom_names)
+details = plipper.summarize_interactions(atom_names)
 
 # or dictionary of interaction counts for a given mol (assuming apo was provided)
 plipper = SerialPLIPper(apo_block)
