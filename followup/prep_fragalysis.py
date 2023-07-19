@@ -109,3 +109,54 @@ def generate_header(method: str,
     for k, v in extras.items():
         bannermol.SetProp(k, str(v))
     return bannermol
+
+
+class DummyMasker:
+    """
+    Copied form rdkit_to_params.utils !
+
+    A context manager that allows operations on a mol containing dummy atoms (R/*) that
+    otherwise would raise an RDKit error.
+    It simply masks and unmasks the dummy atoms.
+
+    >>> mol = Chem.MolFromSmiles('*CCC(C)C')
+    >>> with DummyMasker(mol):
+    >>>     AllChem.EmbedMolecule(mol)
+
+    The input options for dummy maker are ``mol`` (Chem.Mol),
+    ``placekeeper_zahl`` (Z for atomic number),
+    and ``blank_Gasteiger`` to make the dummy atom's '_GasteigerCharge' property zero if present.
+    The Zahl of the placekeeping element will affect the Gasteiger partial chargers of nearby atoms though.
+    """
+
+    def __init__(self,
+                 mol: Chem.Mol,
+                 placekeeper_zahl:int=6,
+                 blank_Gasteiger:bool=True):
+        self.mol = mol
+        self.is_masked = False
+        self.zahl = int(placekeeper_zahl)
+        self.blank_Gasteiger = bool(blank_Gasteiger)
+        self.dummies = list(  mol.GetAtomsMatchingQuery(Chem.rdqueries.AtomNumEqualsQueryAtom(0))  )
+
+    def mask(self):
+        for dummy in self.dummies:
+            dummy.SetAtomicNum(self.zahl)
+            dummy.SetBoolProp('dummy', True)
+            dummy.SetHybridization(Chem.HybridizationType.SP3)
+        self.is_masked = True
+
+    def unmask(self):
+        for dummy in self.dummies:
+            assert dummy.HasProp('dummy'), 'The atoms have changed somehow? (weird cornercase)'
+            dummy.SetAtomicNum(0)
+            if dummy.HasProp('_GasteigerCharge') and self.blank_Gasteiger:
+                dummy.SetDoubleProp('_GasteigerCharge', 0.)
+        self.is_masked = False
+
+    def __enter__(self):
+        self.mask()
+        return self
+
+    def __exit__(self, exc_type: Exception, exc_value: str, exc_traceback: 'bultins.traceback'):
+        self.unmask()

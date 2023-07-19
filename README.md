@@ -195,6 +195,36 @@ header = generate_header(method='Foo',
 prep(df, header, 'mol', 'id', 'foo.sdf', 'x1234', 'x1234', ['∆∆G'])
 ```
 
+The header molecule has a bunch of compulsory fields. The extras are optional, but will dictate the table.
+
+The last step is to make an SDF file with the header and the molecules.
+In truth, most often doing it manually is needed.
+The molecules have to have 'ref_pdb' and 'ref_mols' and 'original SMILES' properties set,
+along with whatever extra was in the header.
+
+The major drama happens with covalents: the star dummy is not accepted.
+Due to stupid reasons, Xe was adopted in the fragment network. But this is not needed.
+
+```python
+from rdkit import Chem
+from rkdik.Chem import AllChem
+from followup.prep_fragalysis import DummyMasker  # from rdkit_to_params.utils
+
+with Chem.SDWriter('molecules-for-upload.sdf') as writer:
+    writer.write(header)
+    writer.SetProps(['pdb_code', 'description', 'ref_pdb', 'ref_mols', 'original SMILES'])
+    for mol in mols:
+        mol.SetProp('ref_pdb', 'x0404_0B')
+        mol.SetProp('ref_mols', 'x0404_0B')
+        with DummyMasker(mol, placekeeper_zahl=16) as mask:  # Sulfur is 16. Xenon is 54
+            try:
+                AllChem.SanitizeMol(mask.mol)
+                mask.mol.SetProp('original SMILES', Chem.MolToSmiles(mask.mol))
+                writer.write(mask.mol)
+            except Exception as error:
+                print(mol.GetProp('_Name'), error.__class__.__name__, str(error))
+```
+
 ## Michelanglo
 
 Upload to Fragalysis is not always okay.

@@ -55,7 +55,7 @@ class QuickDownloader:
     The class method ``QuickDownloader.retrieve_target_data`` will download all the metadata for the targets.
     while ``QuickDownloader.retrieve_target_names`` will return their names.
     """
-    fragalysis_api_url = 'fragalysis.diamond.ac.uk/api/download_structures/'
+    fragalysis_api_url = 'fragalysis.diamond.ac.uk'
     api_data = {
         'proteins': '',
         'event_info': False,
@@ -84,12 +84,12 @@ class QuickDownloader:
         :param options: Any of the options for the endpoint, e.g. ``event_info=True``, cf. ``cls.api_data``
         """
         self.target_name = target_name
-        self.api_data = {options.get(k, v) for k, v in self.api_data.items()}
-        url_response: requests.Response = requests.post(f'https://{self.fragalysis_api_url}',
+        self.api_data = {k: options.get(k, v) for k, v in self.api_data.items()}
+        url_response: requests.Response = requests.post(f'https://{self.fragalysis_api_url}/api/download_structures/',
                                                         json={'target_name': self.target_name, **self.api_data})
         url_response.raise_for_status()
         self.file_url: str = url_response.json()['file_url']
-        response: requests.Response = requests.get(f"https://{self.fragalysis_api_url}?file_url={self.file_url}",
+        response: requests.Response = requests.get(f"https://{self.fragalysis_api_url}/api/download_structures/?file_url={self.file_url}",
                                                    allow_redirects=True)
         response.raise_for_status()
         self.zf = zipfile.ZipFile(io.BytesIO(response.content), "r")
