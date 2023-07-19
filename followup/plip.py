@@ -12,7 +12,7 @@ from rdkit.Chem import Draw
 from rdkit.Chem import PandasTools
 
 from functools import singledispatchmethod
-from typing import Tuple, Dict, List, Union, Sequence, Optional
+from typing import Tuple, Dict, List, Union, Sequence, Optional, Any
 from collections import Counter, defaultdict
 from plip.structure.preparation import PDBComplex, PLInteraction
 from openbabel.pybel import Atom, Residue
@@ -136,7 +136,10 @@ class SerialPLIPper:
             raise TypeError
         return res.GetAtomID(obatom)  # this is likely to be ' C  ' as Babel has stripped this info
 
-    def get_atom_by_atomname(self, residue: Union[ob.OBResidue, Residue], atomname: str) -> ob.OBAtom:
+    def get_atom_by_atomname(self,
+                             residue: Union[ob.OBResidue, Residue],
+                             atomname: str,
+                             atomnames: Optional[Sequence[str]]=None) -> ob.OBAtom:
         """
         Get an atom by its name in a residue.
         Note that the ligand will have its original atom names stripped by Babel.
@@ -145,7 +148,7 @@ class SerialPLIPper:
             residue = residue.OBResidue
         obatom: ob.OBAtom
         for obatom in ob.OBResidueAtomIter(residue):
-            if residue.GetAtomID(obatom).strip() == atomname:
+            if self.get_atomname(obatom, atomnames).strip() == atomname.strip():
                 return obatom
         else:
             raise ValueError(f'No atom with name {atomname} in residue {residue.GetName()}')
@@ -158,5 +161,77 @@ class SerialPLIPper:
         intxn_dex = defaultdict(int)
         for intxn in intxns:
             key = (intxn.__class__.__name__, intxn.restype, intxn.resnr)
-            intxn_dex[key] += 1
+            intxn_dex[key] += 1  # noqa default dict works with tuples
         return dict(sorted(intxn_dex.items(), key=lambda kv: kv[0][2]))
+
+    def summarize_interactions(self, atom_names: Sequence[str]) -> List[Dict[str, Any]]:
+        interaction_set = self.get_interaction_set(self.pdb_block)
+        details: List[Dict[str, Any]] = []
+        for intxn in interaction_set.all_itypes:
+            details.append(self.summarize_interaction(intxn))
+        return details
+
+    def summarize_interaction(self, intxn, atom_names: Sequence[str]) -> Dict[str, Any]:
+        # https://github.com/openbabel/openbabel/blob/master/data/atomtyp.txt
+        relevant_atom_names = []
+        type_name = intxn.__class__.__name__
+        details = {'type': type_name, 'protein_resn': intxn.restype, 'protein_resi': intxn.resnr,
+                   'protein_chain': intxn.reschain}
+        if type_name == 'hbond':
+            if intxn.protisdon:
+                # assert hbond.a.residue.name != self.resn
+                details['atom_names'] = [atom_names[intxn.a.idx - 1]]
+                details['type'] = 'hbond_acceptor'
+                details['babel_atom_types'] = [intxn.atype]
+            else:
+                details['atom_names'] = [atom_names[intxn.d.idx - 1]]
+                details['type'] = 'hbond_donor'
+                details['babel_atom_types'] = [intxn.dtype]
+            details['distance'] = intxn.distance_ad  # intxn.distance_ad is to donor, _ah to hydrogen
+        elif type_name == 'hydroph_interaction':
+            details['atom_names'] = [atom_names[intxn.ligatom.idx - 1]]
+            details['babel_atom_types'] = [intxn.ligatom.type]
+            details['distance'] = intxn.distance
+        elif type_name == 'pistack':
+            details['atom_names'] = [atom_names[a.idx - 1] for a in intxn.ligandring.atoms]
+            details['babel_atom_types'] = [a.type for a in intxn.ligandring.atoms]
+            details['distance'] = intxn.distance
+        elif type_name == 'waterbridge':
+            if intxn.protisdon:
+                # assert hbond.a.residue.name != self.resn
+                details['atom_names'] = [atom_names[intxn.a.idx - 1]]
+                details['type'] = 'water_acceptor'
+                details['babel_atom_types'] = [intxn.atype]
+                details['distance'] = intxn.distance_aw
+            else:
+                details['atom_names'] = [atom_names[intxn.d.idx - 1]]
+                details['type'] = 'water_donor'
+                details['babel_atom_types'] = [intxn.dtype]
+                details['distance'] = intxn.distance_dw
+        elif type_name == 'saltbridge':
+            if intxn.protispos:
+                details['atom_names'] = [atom_names[a.idx - 1] for a in intxn.negative.atoms]
+                details['type'] = 'saltbridge_negative'
+                details['babel_atom_types'] = [a.type for a in intxn.negative.atoms]
+                details['distance'] = intxn.distance
+            else:
+                details['atom_names'] = [atom_names[a.idx - 1] for a in intxn.positive.atoms]
+                details['type'] = 'saltbridge_positive'
+                details['babel_atom_types'] = [a.type for a in intxn.positive.atoms]
+                details['distance'] = intxn.distance
+        elif type_name == 'pication':
+            if intxn.protcharged:
+                details['atom_names'] = [atom_names[a.idx - 1] for a in intxn.ring.atoms]
+                details['type'] = 'pication_ring'
+                details['babel_atom_types'] = [a.type for a in intxn.ring.atoms]
+                details['distance'] = intxn.distance
+            else:
+                details['atom_names'] = [atom_names[a.idx - 1] for a in intxn.charge.atoms]
+                details['type'] = 'pication_charge'
+                details['babel_atom_types'] = [a.type for a in intxn.charge.atoms]
+                details['distance'] = intxn.distance
+        else:
+            raise TypeError(type_name)
+        return details
+
+

@@ -102,9 +102,37 @@ PLIP extract interactions from PDB files.
 
 NB. `intxn` is non-standard and unclear to many, please don't copy.
 
-See also https://github.com/matteoferla/PLIP-PyRosetta-hotspots-test
+In [followup.plip](followup/plip.py) there is a class to run PLIP on a PDB file
+and converts the results into a uniform format.
 
-> :construction: Extract
+```python
+plipper = SerialPLIPper(pdb_block,
+                        resn=lig_resn,
+                        resi=lig_resi,
+                        chain=lig_chain)
+# list of dictionaries with interactions spelled out.
+details = summarize_interactions(plipper, atom_names)
+
+# or dictionary of interaction counts for a given mol (assuming apo was provided)
+plipper = SerialPLIPper(apo_block)
+details = plipper(mol)
+```
+
+A few things to note: the atom names are lost for the non-canonical ligand,
+hence why they are passed.
+
+The bond order and protonation is guessed with no option for SMILES template.
+As a result in [plip_initials notebook](notebooks/plip_initials.ipynb),
+PyRosetta is used to generate the protonated form with CONECT records.
+allowing the happy usage of:
+
+```python
+from plip.basic import config
+
+config.NOHYDRO = True
+```
+
+See also https://github.com/matteoferla/PLIP-PyRosetta-hotspots-test
 
 ## Fragmenstein
 
