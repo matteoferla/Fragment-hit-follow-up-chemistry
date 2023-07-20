@@ -173,6 +173,7 @@ class SerialPLIPper:
 
     def summarize_interaction(self, intxn, atom_names: Sequence[str]) -> Dict[str, Any]:
         # https://github.com/openbabel/openbabel/blob/master/data/atomtyp.txt
+        # https://blog.matteoferla.com/2023/07/a-note-no-plip-interactions.html
         relevant_atom_names = []
         type_name = intxn.__class__.__name__
         details = {'type': type_name, 'protein_resn': intxn.restype, 'protein_resi': intxn.resnr,
@@ -230,7 +231,11 @@ class SerialPLIPper:
                 details['type'] = 'pication_charge'
                 details['babel_atom_types'] = [a.type for a in intxn.charge.atoms]
                 details['distance'] = intxn.distance
-        else:
+        elif type_name == 'halogenbond':
+            details['atom_names'] = [atom_names[intxn.don.idx - 1]]
+            details['babel_atom_types'] = [intxn.don.type]
+            details['distance'] = intxn.distance
+        else:  # metal_complex basically.
             raise TypeError(type_name)
         return details
 
