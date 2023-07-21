@@ -133,8 +133,14 @@ config.NOHYDRO = True
 ```
 
 See also https://github.com/matteoferla/PLIP-PyRosetta-hotspots-test
+and https://blog.matteoferla.com/2023/07/a-note-no-plip-interactions.html
 
 ## Fragmenstein
+
+In [followup.fragmenstein_merge_sw_place](followup/fragmenstein_merge_sw_place.py)
+is a script to run Fragmenstein on a PDB file and SDF hits, merge them,
+find analogues via SmallWorld and place them in the PDB.
+
 
 > For more [:octocat::Fragmenstein](https://github.com/matteoferla/Fragmenstein)
 
