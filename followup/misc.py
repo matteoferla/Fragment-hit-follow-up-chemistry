@@ -13,7 +13,7 @@ def display_source(function):
     display(HTML(f"{stylesheet}{html}"))
 
 # --------------------------------------------------------------------------------------------
-
+from rdkit import Chem
 from rdkit.Chem import Draw
 from typing import List
 from IPython.display import Image

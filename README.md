@@ -113,14 +113,22 @@ In notebooks/frag-extraction.ipynb is the old case.
 For the fixing of `_combined.sdf` data, the following code can be used:
 
 ```python
+target_name = '...'
+keep_prefix = False   # Having target_name prefix makes names longer... but easier to split etc.
+
+# ------------------------------------------------
+
 import pandas as pd
 import operator
 from rdkit import Chem
+from rdkit.Chem import AllChem, PandasTools
 
-target_name = ...
 metadata = pd.read_csv('metadata.csv')
 # the crystal_name values are like TARGET-COMPOUND_\n\w
-metadata['code'] = metadata.crystal_name.str.replace(f'{target_name}-', '').apply(operator.itemgetter(1))
+if keep_prefix:
+    metadata['code'] = metadata.crystal_name
+else:
+    metadata['code'] = metadata.crystal_name.str.replace(f'{target_name}-', '')
 metadata = metadata.set_index('crystal_name')
 # remove the salts from the SMILES
 metadata['smiles'] = metadata.new_smiles.apply(lambda v: sorted(v.split('.'), key=len)[-1])
@@ -128,9 +136,10 @@ metadata['smiles'] = metadata.new_smiles.apply(lambda v: sorted(v.split('.'), ke
 with Chem.SDMolSupplier(f'{target_name}_combined.sdf') as sdf_r:
     hits = list(sdf_r)
 metadata['mol'] = {h.GetProp('_Name'): h for h in hits}
-# write
+metadata['mol'] = metadata.apply(lambda row: AllChem.AssignBondOrdersFromTemplate(Chem.MolFromSmiles(row.smiles), row.mol), axis=1)
+
 PandasTools.WriteSDF(df=metadata.reset_index(), 
-                     out=f'{target_name}_corrected.sdf',
+                     out=f'{target_name}.corrected.sdf',
                      molColName='mol', idName='code',
                      properties=['crystal_name', 'RealCrystalName', 'smiles', 'alternate_name', 'site_name'])
 ```
@@ -138,7 +147,25 @@ PandasTools.WriteSDF(df=metadata.reset_index(),
 There is a RDKit fuction to split compounds and remove inorganics, but there is an acetate in there somewhere.
 So brutally getting the longest SMILES is easy and foolproof.
 
-    etadata.new_smiles.apply(lambda v: sorted(v.split('.'), key=len)[-1])
+    metadata.new_smiles.apply(lambda v: sorted(v.split('.'), key=len)[-1])
+
+## Decomposition
+
+BRICS is good, but has two problems for my use.
+It does not keep the metadata and it does not split fused/spiro rings, which is understandable,
+but in this case I want to split them.
+
+In [followup.fragment](followup/fragment.py) there is a function (`fragmént`) to fragment a molecule into frágments.
+
+```python
+from followup.fragment import fragmént, remove_duplicated
+
+fhits: List[Chem.Mol] = []
+for hit in hits:
+    fhits.extend( fragmént(hit, minFragmentSize=7, fused_splitting=True) )
+
+fhits = remove_duplicated(fhits)
+```
 
 ## PLIP
 
