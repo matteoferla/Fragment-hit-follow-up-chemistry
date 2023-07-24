@@ -85,16 +85,60 @@ For a chemical component kill list see
 
 ## Fragment extraction
 
-**Any script here present is for fragment cleanup is not the official Fragalysis way.**
+The problem is as follows:
 
-But briefly, the problem is as follows:
+1. A PDB structure may be a dimer in the crystallographic asymmetric unit, but a monomer in vivo. A compound may bind in both or in a single chain.
+2. A compound may be listed as a salt, e.g. `Na.CC(=O)[O-]`, but obviously is solubilised in DMSO.
+3. A compound may be racemic but only one isomer binds. 
+4. A unique compound may bind more than once.
+5. A compound may have crystallogrically ambiguous conformers (think glutamine and histidine orientations), the PDBs will have partial density and alt IDs.
 
-* A compound may be racemic but only one isomer binds. It will be split later on.
-* A unique compound may bind more than once. It will have a single XChem code.
-* A PDB structure may be a dimer in the crystallographic asymmetric unit, but a monomer in vivo. A compound may bind in both or in a single chain. Each chain will have a different PDB.
-* A compound may have ambiguous conformers (think glutamine and histidine orientations), the PDBs will have partial density and alt IDs.
+As of July 2023, these have these effects:
 
-> :construction: Clean-up
+1. This is addressed by aligning relevant monomer to the reference structure (see note), yielding structures with say _0A and _0B suffixes.
+2. This is still results in the loss of bond order. Do not trust `_combined.sdf` file without fixing it  (see code)
+3. Historically, the entry was either edited or a new entry created for the isomer. The latter is the official way.
+4. Each will be its own structure, but not in legacy data
+5. Each will be its own structure, but not in legacy data
+
+Legacy data:
+
+There have been a few iterations of how Fragalysis aligns the crystals.
+In a first iteration (by the Fragment-5) the chains in the assymetric unit were aligned to the reference in PyMOL.
+As this cause corner case issues, the code was changed (by Tyler) to aligning the asymmetric unit.
+Now, the code (by Connor) aligns key residues in the binding site.
+
+In notebooks/frag-extraction.ipynb is the old case.
+
+For the fixing of `_combined.sdf` data, the following code can be used:
+
+```python
+import pandas as pd
+import operator
+from rdkit import Chem
+
+target_name = ...
+metadata = pd.read_csv('metadata.csv')
+# the crystal_name values are like TARGET-COMPOUND_\n\w
+metadata['code'] = metadata.crystal_name.str.replace(f'{target_name}-', '').apply(operator.itemgetter(1))
+metadata = metadata.set_index('crystal_name')
+# remove the salts from the SMILES
+metadata['smiles'] = metadata.new_smiles.apply(lambda v: sorted(v.split('.'), key=len)[-1])
+# add the mol
+with Chem.SDMolSupplier(f'{target_name}_combined.sdf') as sdf_r:
+    hits = list(sdf_r)
+metadata['mol'] = {h.GetProp('_Name'): h for h in hits}
+# write
+PandasTools.WriteSDF(df=metadata.reset_index(), 
+                     out=f'{target_name}_corrected.sdf',
+                     molColName='mol', idName='code',
+                     properties=['crystal_name', 'RealCrystalName', 'smiles', 'alternate_name', 'site_name'])
+```
+
+There is a RDKit fuction to split compounds and remove inorganics, but there is an acetate in there somewhere.
+So brutally getting the longest SMILES is easy and foolproof.
+
+    etadata.new_smiles.apply(lambda v: sorted(v.split('.'), key=len)[-1])
 
 ## PLIP
 

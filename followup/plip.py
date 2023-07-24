@@ -168,7 +168,7 @@ class SerialPLIPper:
         interaction_set = self.get_interaction_set(self.pdb_block)
         details: List[Dict[str, Any]] = []
         for intxn in interaction_set.all_itypes:
-            details.append(self.summarize_interaction(intxn))
+            details.append(self.summarize_interaction(intxn, atom_names))
         return details
 
     def summarize_interaction(self, intxn, atom_names: Sequence[str]) -> Dict[str, Any]:

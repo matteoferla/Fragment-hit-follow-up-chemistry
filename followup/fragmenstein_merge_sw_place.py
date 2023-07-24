@@ -15,6 +15,7 @@ from smallworld_api import SmallWorld
 from rdkit import Chem, rdBase
 from rdkit.Chem import AllChem, Draw, PandasTools, BRICS
 from rdkit.Chem.Draw import IPythonConsole
+Chem.SetDefaultPickleProperties(Chem.PropertyPickleOptions.AllProps)
 
 from fragmenstein import Igor, Victor, Laboratory
 from fragmenstein.laboratory.validator import place_input_validator
@@ -71,6 +72,7 @@ def get_custom_map(row: pd.Series) -> Dict[str, Dict[int, int]]:
     temp.monster.positioned_mol = row.unminimized_merger
     temp.minimized_mol = row.minimized_merger
     return temp.migrate_sw_origins(row)
+
 def search(combinations, suffix, sw_dist, sw_length, top_mergers, ranking, sw_db,  **setting) -> pd.DataFrame:
     queries = combinations.sort_values(ranking)\
                           .loc[(combinations.outcome == 'acceptable')]\
@@ -84,8 +86,10 @@ def search(combinations, suffix, sw_dist, sw_length, top_mergers, ranking, sw_db
                                tolerated_exceptions=Exception)
     print(f'Found {len(similars)} analogues')
     # query_index was added clientside to keep track!
+    similars['catalogue'] = sw_db
     similars['query_name'] = similars.query_index.map( queries.name.to_dict() )
     similars['hits'] = similars.query_index.map( queries.hit_mols.to_dict() )
+    similars['hit_names'] = similars.hits.apply(lambda m: [mm.GetProp('_Name') for mm in m])
     similars['minimized_merger'] = similars.query_index.map( queries.minimized_mol.to_dict() )
     similars['unminimized_merger'] = similars.query_index.map( queries.unminimized_mol.to_dict() )
     similars['name'] = similars['id'] + ':' + similars['query_name']
@@ -97,7 +101,7 @@ def search(combinations, suffix, sw_dist, sw_length, top_mergers, ranking, sw_db
 # ------------------------------------------------------
 
 def place(similars, n_cores, timeout, suffix, **settings) -> pd.DataFrame:
-    lab = Laboratory(pdbblock=pdbblock, covalent_resi=None)
+    lab = Laboratory(pdbblock=pdbblock, covalent_resi=None, run_plip=True)
     placements: pd.DataFrame = lab.place(place_input_validator(similars), n_cores=n_cores, timeout=timeout)
     placements.loc[(placements['∆∆G'] > -1) & (placements.outcome == 'acceptable'), 'outcome'] = 'weak'
     placements['unminimized_mol'] = placements.unminimized_mol.fillna(Chem.Mol())
@@ -116,33 +120,39 @@ def write(placements, suffix):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--template', help='Template PDB file', required=True)
-    parser.add_argmument('-h', '--hits', help='Hits SDF file', required=True)
+    parser.add_argument('-i', '--hits', help='Hits SDF file', required=True)
     parser.add_argument('-o', '--output', help='Output folder', default='output')
     parser.add_argument('-r', '--ranking', help='Ranking method', default='∆∆G')
     parser.add_argument('-c', '--cutoff', help='Joining cutoff', default=5)
     parser.add_argument('-q', '--quick', help='Quick reanimation', default=False)
-    parser.add_argument('-d', '--sw_dist', help='SmallWorld distance', default=25)
-    parser.add_argument('-l', '--sw_length', help='SmallWorld length', default=50)
+    parser.add_argument('-d', '--sw_dist', help='SmallWorld distance', default=25, type=int)
+    parser.add_argument('-l', '--sw_length', help='SmallWorld length', default=50, type=int)
     parser.add_argument('-b', '--sw_databases', help='SmallWorld databases. Accepts multiple e.g. '+\
-         '--sw_databases Enamine-SC-Stock-Mar2022.smi.anon Enamine-BB-Stock-Mar2022.smi.anon REAL-Database-22Q1.smi.anon',
-                        nargs='+', default=sws.REAL_dataset)
+         '--sw_databases Enamine-SC-Stock-Mar2022.smi.anon Enamine-BB-Stock-Mar2022.smi.anon REAL-Database-22Q1.smi.anon', nargs='+', default=sws.REAL_dataset)
     parser.add_argument('-s', '--suffix', help='Suffix for output files', default='')
-    parser.add_argument('-n', '--n_cores', help='Number of cores', default=55)
-    parser.add_argument('-m', '--combination_size', help='Number of hits to combine in one step', default=2)
-    parser.add_argument('-k', '--top_mergers', help='Max number of mergers to followup up on', default=500)
-    parser.add_argument('-e', '--timeout', help='Timeout for each merger', default=240)
+    parser.add_argument('-n', '--n_cores', help='Number of cores', default=55, type=int)
+    parser.add_argument('-m', '--combination_size', help='Number of hits to combine in one step', default=2, type=int)
+    parser.add_argument('-k', '--top_mergers', help='Max number of mergers to followup up on', default=500, type=int)
+    parser.add_argument('-e', '--timeout', help='Timeout for each merger', default=240, type=int)
     # load
     settings: Dict[str, Any] = vars(parser.parse_args())
     set_up(**settings)
-    with Chem.SDMolSupplier(settings['hits']) as sd:
-        hits: Dict[str, Chem.Mol] = {mol.GetProp('_Name'): mol for mol in sd}
-    with open(settings['template']) as fh:
+    with Chem.SDMolSupplier(settings['hits'].strip()) as sd:
+        #hitdex: Dict[str, Chem.Mol] = {mol.GetProp('_Name'): mol for mol in sd}
+        hits : List[Chem.Mol] = list(sd)
+    settings['hits'] = hits
+    print(f'N hits: {len(hits)}')
+    with open(settings['template'].strip()) as fh:
         pdbblock = fh.read()
+    settings['pdbblock'] = pdbblock
     # run
-    combinations: pd.DataFrame = merge(hits, pdbblock, **settings)
+    combinations: pd.DataFrame = merge(**settings)
     uncat_similars: List[pd.DataFrame] = []
-    for db in settings['sw_databases']:
-        uncat_similars.append(search(combinations, sw_db=db, **settings))
+    for sw_db in settings['sw_databases']:
+        s = search(combinations, sw_db=sw_db, **settings)
+        if len(s):
+            uncat_similars.append(s)
+    assert uncat_similars, 'No analogues were found!'
     similars: pd.DataFrame = pd.concat(uncat_similars, ignore_index=True).drop_duplicates('smiles')
     placements: pd.DataFrame = place(similars, **settings)
 
