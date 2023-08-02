@@ -45,13 +45,15 @@ def set_up(output, cutoff, quick, suffix, **kwargs):
     Victor.enable_logfile(os.path.join(output, f'{suffix}.log'), logging.ERROR)
 
 
-def merge(hits, pdbblock, suffix, n_cores, combination_size, timeout, **settings) -> pd.DataFrame:
+def merge(hits, pdbblock, suffix, n_cores, combination_size, timeout, max_tasks, blacklist, **settings) -> pd.DataFrame:
     lab = Laboratory(pdbblock=pdbblock, covalent_resi=None)
+    lab.blacklist = blacklist
     tick = time.time()
     combinations: pd.DataFrame = lab.combine(hits,
                                              n_cores=n_cores,
                                              timeout=timeout,
-                                             combination_size=combination_size)
+                                             combination_size=combination_size,
+                                             max_tasks=max_tasks)
     with rdBase.BlockLogs():
         combinations['simple_smiles'] = combinations.unminimized_mol.apply(Victor.to_simple_smiles)
     combinations.to_pickle(f'fragmenstein_mergers{suffix}.pkl.gz')
@@ -95,7 +97,7 @@ def search(combinations, suffix, sw_dist, sw_length, top_mergers, ranking, sw_db
     similars['name'] = similars['id'] + ':' + similars['query_name']
     similars['smiles'] = similars.hitSmiles.str.split(expand=True)[0]
     similars['custom_map'] = similars.apply(get_custom_map, axis=1)
-    similars.to_pickle(f'similars{suffix}.pkl.gz')
+    similars.to_pickle(f'similars{suffix}.{sw_db}.pkl.gz')
     return similars
 
 # ------------------------------------------------------
@@ -134,6 +136,9 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--combination_size', help='Number of hits to combine in one step', default=2, type=int)
     parser.add_argument('-k', '--top_mergers', help='Max number of mergers to followup up on', default=500, type=int)
     parser.add_argument('-e', '--timeout', help='Timeout for each merger', default=240, type=int)
+    parser.add_argument('-x', '--max_tasks', help='Max number of combinations to try', default=0, type=int)
+    parser.add_argument('-z', '--blacklist', help='Blacklist file', default='')
+
     # load
     settings: Dict[str, Any] = vars(parser.parse_args())
     set_up(**settings)
@@ -141,6 +146,10 @@ if __name__ == '__main__':
         #hitdex: Dict[str, Chem.Mol] = {mol.GetProp('_Name'): mol for mol in sd}
         hits : List[Chem.Mol] = list(sd)
     settings['hits'] = hits
+    if settings['blacklist']:
+        with open(settings['blacklist'].strip()) as fh:
+            settings['blacklist'] = [line.strip() for line in fh.readlines()]
+    settings['blacklist'] = []
     print(f'N hits: {len(hits)}')
     with open(settings['template'].strip()) as fh:
         pdbblock = fh.read()
