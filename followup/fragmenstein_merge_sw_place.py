@@ -9,15 +9,12 @@ Example of multiple dbs
     --sw_databases Enamine-SC-Stock-Mar2022.smi.anon Enamine-BB-Stock-Mar2022.smi.anon REAL-Database-22Q1.smi.anon
 """
 
-
-
 from rdkit.ML.Cluster import Butina
 from rdkit.Chem import rdMolDescriptors as rdmd
 from rdkit.Chem import Descriptors
 
-
-from typing import List, Dict, Any
-import operator, os, re, logging, random, time, argparse, string, itertools, json
+from typing import List, Dict, Any, Optional
+import operator, os, re, logging, random, time, argparse, string, itertools, json, contextlib, requests
 from warnings import warn
 from pathlib import Path
 
@@ -27,14 +24,13 @@ import pyrosetta_help as ph
 import pandas as pd
 import pandera.typing as pdt
 from pandarallel import pandarallel
-
 from smallworld_api import SmallWorld
+
 
 from rdkit import Chem, rdBase, DataStructs
 from rdkit.Chem import AllChem, Draw, PandasTools, BRICS
 from rdkit.Chem.Draw import IPythonConsole
 from rdkit.Chem import rdFingerprintGenerator as rdfpg
-
 
 Chem.SetDefaultPickleProperties(Chem.PropertyPickleOptions.AllProps)
 
@@ -51,10 +47,11 @@ if logger.handlers:
 
 Igor.init_pyrosetta()
 
-sws = SmallWorld()
-
-chemical_databases: pd.DataFrame = sws.retrieve_databases()
-
+try:
+    sws = SmallWorld()
+    chemical_databases: pd.DataFrame = sws.retrieve_databases()
+except requests.HTTPError as error:
+    warn(f'sw.docking.org is down. {error}')
 
 # ------------------------------------------------------
 
@@ -67,6 +64,7 @@ def set_up(output, cutoff, quick, suffix, **kwargs):
     Victor.error_to_catch = Exception  # stop the whole laboratory otherwise
     Victor.enable_stdout(logging.CRITICAL)
     Victor.enable_logfile(os.path.join(output, f'{suffix}.log'), logging.ERROR)
+
 
 def config_parser():
     parser = argparse.ArgumentParser()
@@ -90,6 +88,7 @@ def config_parser():
     parser.add_argument('-j', '--weights', help='JSON weights file', default='')
     return parser
 
+
 # ------------------------------------------------------
 
 def replace_hits(pdbblock, hits, n_cores, timeout, suffix, **settings):
@@ -101,9 +100,12 @@ def replace_hits(pdbblock, hits, n_cores, timeout, suffix, **settings):
                                  ) for hit in hits])
     replacements: pd.DataFrame = lab.place(place_input_validator(selfies), n_cores=n_cores, timeout=timeout)
     fix_intxns(replacements)
+    replacements['bleached_name'] = replacements['name']
+    replacements['name'] = replacements.hit_mols.apply(lambda ms: ms[0].GetProp('_Name'))
     replacements.to_pickle(f'fragmenstein_hit_replacements{suffix}.pkl.gz')
     # replacements.to_csv(f'fragmenstein_hit_replacements{suffix}.csv')
     return replacements
+
 
 def merge(hits, pdbblock, suffix, n_cores, combination_size, timeout, max_tasks, blacklist, **settings) -> pd.DataFrame:
     lab = Laboratory(pdbblock=pdbblock, covalent_resi=None)
@@ -137,8 +139,12 @@ def get_custom_map(row: pd.Series) -> Dict[str, Dict[int, int]]:
     return temp.migrate_sw_origins(row)
 
 
-def search(combinations, suffix, sw_dist, sw_length, top_mergers, ranking, sw_db, **setting) -> pd.DataFrame:
-    queries = combinations.sort_values(ranking) \
+def search(combinations: pd.DataFrame, suffix: str,
+           sw_dist:int, sw_length:int, top_mergers: int,
+           ranking: str, sw_db:str,ranking_ascending: Optional[bool]=None, **setting) -> pd.DataFrame:
+    if ranking_ascending is None:
+        ranking_ascending = False if ranking in ('LE', 'N_interactions') else True
+    queries = combinations.sort_values(ranking, ascending=ranking_ascending) \
         .loc[(combinations.outcome == 'acceptable')] \
         .drop_duplicates('simple_smiles') \
         .reset_index() \
@@ -173,9 +179,8 @@ def place(similars, pdbblock, n_cores, timeout, suffix, **settings) -> pd.DataFr
     fix_intxns(placements)
     placements.to_pickle(f'fragmenstein_placed{suffix}.pkl.gz')
     placements.to_csv(f'fragmenstein_placed{suffix}.csv')
-    placements.outcome.value_counts()
+    print(placements.outcome.value_counts())
     return placements
-
 
 
 def fix_intxns(df):
@@ -204,6 +209,7 @@ def correct_weaklings(hit_replacements, df):
             df.outcome == 'acceptable')
     df.loc[worseness_mask, 'outcome'] = 'weaker'
 
+
 def core_ops(hit_replacements, **settings):
     combinations: pd.DataFrame = merge(**settings)
     correct_weaklings(hit_replacements, combinations)
@@ -218,96 +224,139 @@ def core_ops(hit_replacements, **settings):
     placements: pd.DataFrame = place(similars, **settings)
     return placements
 
+
 # ----- Scoring -----------------------------------
+class GetRowSimilarity:
+    def __init__(self, hits):
+        self.fpgen = rdfpg.GetRDKitFPGenerator()
+        self.hit2fp = {h.GetProp('_Name'): self.fpgen.GetFingerprint(h) for h in hits}
+
+    def __call__(self, row: pd.Series):
+        with contextlib.suppress(Exception):
+            if not isinstance(row.minimized_mol, Chem.Mol):
+                return float('nan')
+            elif isinstance(row.hit_names, str):
+                hit_names = row.hit_names.split(',')
+            elif isinstance(row.hit_names, list):
+                hit_names = row.hit_names
+            else:
+                return float('nan')
+            fp = self.fpgen.GetFingerprint(AllChem.RemoveHs(row.minimized_mol))
+            return max([DataStructs.TanimotoSimilarity(fp, self.hit2fp[name]) for name in hit_names])
+        return float('nan')
+
+
+class HitIntxnTallier:
+
+    def __init__(self, hit_replacements):
+        self.slim_hits = self.slim_down(hit_replacements)
+
+    def slim_down(self, hit_replacements):
+        # the bleaching was fixed cf bleached_name
+        # hit_replacements['new_name'] = hit_replacements.name.str.replace('-', '_')
+        # undoing bleaching
+        hit_replacements['new_name'] = hit_replacements.hit_mols.apply(lambda ms: ms[0].GetProp('_Name'))
+        columns = [c for c in hit_replacements.columns if isinstance(c, tuple)]
+        return hit_replacements.set_index('new_name')[columns].fillna(0).copy()
+
+    def __call__(self, row: pd.Series):
+        with contextlib.suppress(Exception):
+            if not isinstance(row.minimized_mol, Chem.Mol) or isinstance(row.hit_names, float):
+                return float('nan'), float('nan')
+            present_tally = 0
+            absent_tally = 0
+            for hit_name in list(row.hit_names):
+                if hit_name not in self.slim_hits.index:
+                    raise Exception('Name' + hit_name)
+                hit_row = self.slim_hits.loc[hit_name]
+                for intxn_name, hit_value in hit_row.items():
+                    if not hit_value:
+                        continue
+                    elif intxn_name not in row.index:
+                        absent_tally += 1 if intxn_name[0] != 'hydroph_interaction' else 0.5
+                    elif row[intxn_name]:
+                        absent_tally += 1 if intxn_name[0] != 'hydroph_interaction' else 0.5
+                    else:
+                        present_tally += 1 if intxn_name[0] != 'hydroph_interaction' else 0.5
+            return present_tally, absent_tally
+        return float('nan'), float('nan')
+
+
+class UniquenessMeter:
+    def __init__(self, tallies, intxn_names, k=0.5):
+        self.tallies = tallies
+        self.intxn_names = intxn_names
+        self.k = k
+
+    def __call__(self, row):
+        with contextlib.suppress(Exception):
+            return sum([(row[name] / self.tallies[name]) ** self.k for name in self.intxn_names if
+                        row[name] and self.tallies[name]])
+        return float('nan')
+
+    def tally_interactions(self, row):
+        return sum([row[c] if self.intxn_names[0] != 'hydroph_interaction' else row[c] * 0.5 for c in self.intxn_names])
+
+
+class PenalityMeter:
+    def __init__(self, weights):
+        self.weights = weights
+
+    def __call__(self, row):
+        with contextlib.suppress(Exception):
+            penalty = 0
+            if row.outcome != 'acceptable':
+                return float('inf')
+            for col, w in self.weights.items():
+                penalty += row[col] * w
+            return penalty
+        return float('nan')
+
+
+def butina_cluster(mol_list, cutoff=0.35):
+    # https://github.com/PatWalters/workshop/blob/master/clustering/taylor_butina.ipynb
+    fp_list = [rdmd.GetMorganFingerprintAsBitVect(AllChem.RemoveAllHs(m), 3, nBits=2048) for m in mol_list]
+    dists = []
+    nfps = len(fp_list)
+    for i in range(1, nfps):
+        sims = DataStructs.BulkTanimotoSimilarity(fp_list[i], fp_list[:i])
+        dists.extend([1 - x for x in sims])
+    mol_clusters = Butina.ClusterData(dists, nfps, cutoff, isDistData=True)
+    cluster_id_list = [0] * nfps
+    for idx, cluster in enumerate(mol_clusters, 1):
+        for member in cluster:
+            cluster_id_list[member] = idx
+    return cluster_id_list
+
 
 def score(placements, hit_replacements, suffix, hits, weights, **settings):
     # tanimoto
-    fpgen = rdfpg.GetRDKitFPGenerator()
-    hit2fp = {h.GetProp('_Name'): fpgen.GetFingerprint(h) for h in hits}
-    def get_similarity(row):
-        if not isinstance(row.minimized_mol, Chem.Mol):
-            return float('nan')
-        fp = fpgen.GetFingerprint(AllChem.RemoveHs(row.minimized_mol))
-        return max([DataStructs.TanimotoSimilarity(fp, hit2fp[name]) for name in row.hit_names])
-
+    get_similarity = GetRowSimilarity(hits)
     placements['max_hit_Tanimoto'] = placements.apply(get_similarity, axis=1)
+    # properties
     m = placements.minimized_mol.apply(lambda m: m if isinstance(m, Chem.Mol) else Chem.Mol())
     # macrocyclics... yuck.
     placements['largest_ring'] = m.apply(lambda mol: max([0] + list(map(len, mol.GetRingInfo().AtomRings()))))
-
     # interactions
-    hit_replacements['new_name'] = hit_replacements.name.str.replace('-', '_')
-    slim_hits = hit_replacements.set_index('new_name')[
-        [c for c in hit_replacements.columns if isinstance(c, tuple)]].fillna(0).copy()
-
-    def tally_hit_intxns(row: pd.Series):
-        if not isinstance(row.minimized_mol, Chem.Mol) or isinstance(row.hit_names, float):
-            return float('nan'), float('nan')
-        present_tally = 0
-        absent_tally = 0
-        for hit_name in row.hit_names:
-            if hit_name not in slim_hits.index:
-                raise Exception('Name' + hit_name)
-                return float('nan'), float('nan')
-            hit_row = slim_hits.loc[hit_name]
-            for intxn_name, hit_value in hit_row.items():
-                if not hit_value:
-                    continue
-                elif intxn_name not in row.index:
-                    absent_tally += 1 if intxn_name[0] != 'hydroph_interaction' else 0.5
-                elif row[intxn_name]:
-                    absent_tally += 1 if intxn_name[0] != 'hydroph_interaction' else 0.5
-                else:
-                    present_tally += 1 if intxn_name[0] != 'hydroph_interaction' else 0.5
-        return (present_tally, absent_tally)
-
     intxn_names = [c for c in placements.columns if isinstance(c, tuple)]
     for intxn_name in intxn_names:
         placements[intxn_name] = placements[intxn_name].fillna(0).astype(int)
-
-    hit_checks = placements.parallel_apply(tally_hit_intxns, axis=1)
+    tally_hit_intxns = HitIntxnTallier(hit_replacements)
+    hit_checks = placements.apply(tally_hit_intxns, axis=1)
     placements['N_interactions_kept'] = hit_checks.apply(operator.itemgetter(0))  # .fillna(0).astype(int)
     placements['N_interactions_lost'] = hit_checks.apply(operator.itemgetter(1))  # .fillna(99).astype(int)
-
     tallies = placements[intxn_names].sum()
-    def ratioed(row, k=.5):
-        return sum([(row[name] / tallies[name]) ** k for name in intxn_names if row[name] and tallies[name]])
-
+    ratioed = UniquenessMeter(tallies, intxn_names, k=0.5)
     placements['interaction_uniqueness_metric'] = placements.apply(ratioed, axis=1)
-    def penalize(row):
-        penalty = 0
-        if row.outcome != 'acceptable':
-            return float('nan')
-        for col, w in weights.items():
-            penalty += row[col] * w
-        return penalty
-
+    penalize = PenalityMeter(weights)
     placements['ad_hoc_penalty'] = placements.apply(penalize, axis=1)
-
-    def butina_cluster(mol_list, cutoff=0.35):
-        # https://github.com/PatWalters/workshop/blob/master/clustering/taylor_butina.ipynb
-        fp_list = [rdmd.GetMorganFingerprintAsBitVect(AllChem.RemoveAllHs(m), 3, nBits=2048) for m in mol_list]
-        dists = []
-        nfps = len(fp_list)
-        for i in range(1, nfps):
-            sims = DataStructs.BulkTanimotoSimilarity(fp_list[i], fp_list[:i])
-            dists.extend([1 - x for x in sims])
-        mol_clusters = Butina.ClusterData(dists, nfps, cutoff, isDistData=True)
-        cluster_id_list = [0] * nfps
-        for idx, cluster in enumerate(mol_clusters, 1):
-            for member in cluster:
-                cluster_id_list[member] = idx
-        return cluster_id_list
-
-    m = placements.minimized_mol.parallel_apply(lambda m: m if isinstance(m, Chem.Mol) else Chem.Mol())
     placements['N_rotatable_bonds'] = m.apply(Chem.rdMolDescriptors.CalcNumRotatableBonds)
     placements['N_HA'] = m.apply(Chem.Mol.GetNumHeavyAtoms)
     # placements['N_interactions'] = placements[[c for c in placements.columns if isinstance(c, tuple)]].fillna(0).sum(axis=1)
-    placements['cluster'] = butina_cluster(m.to_list())
-    def tally_interactions(row):
-        return sum([row[c] if intxn_name[0] != 'hydroph_interaction' else row[c] * 0.5 for c in intxn_names])
+    with contextlib.suppress(Exception):
+        placements['cluster'] = butina_cluster(m.to_list())
+    placements['N_interactions'] = placements.apply(ratioed.tally_interactions, axis=1)
 
-    placements['N_interactions'] = placements.parallel_apply(tally_interactions, axis=1)
 
 if __name__ == '__main__':
     parser = config_parser()
