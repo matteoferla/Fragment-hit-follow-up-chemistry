@@ -69,10 +69,10 @@ def get_price(enamine_code: str,
     """
     Get the price of a compound from the Enamine Store.
 
-    :param enamine_code:
-    :param catalogue:
-    :param currency:
-    :return:
+    :param enamine_code: str. Enamine code, e.g. Z12345678
+    :param catalogue: see StoreCatalogues enum
+    :param currency: see StoreCurrency enum
+    :return: price for 1 mg (fudged math for higher amounts)
     """
     db_name = catalogue.name if isinstance(catalogue, StoreCatalogues) else str(catalogue)
     cur_name = currency.name if isinstance(currency, StoreCurrency) else str(currency)
@@ -83,4 +83,14 @@ def get_price(enamine_code: str,
         if datum['amount'] != 1.0 or datum['measure'] != 'mg':
             continue
         return datum['price']
-    return 0.
+    if len(data['samples']) == 0:
+        return 0.
+    datum = data['samples'][0]
+    if datum['measure'] == 'mg':
+        return data['samples'][0]['price'] / datum['amount']
+    elif datum['measure'] == 'g':
+        return data['samples'][0]['price'] / datum['amount'] / 1_000
+    elif datum['measure'] == 'kg':
+        return data['samples'][0]['price'] / datum['amount'] / 1_000_000
+    else:
+        return 0.

@@ -31,14 +31,18 @@ from rdkit import Chem, rdBase, DataStructs
 from rdkit.Chem import AllChem, Draw, PandasTools, BRICS
 from rdkit.Chem.Draw import IPythonConsole
 from rdkit.Chem import rdFingerprintGenerator as rdfpg
+from rdkit.Chem.rdfiltercatalog import FilterCatalogParams, FilterCatalog, FilterCatalogEntry
+
 
 Chem.SetDefaultPickleProperties(Chem.PropertyPickleOptions.AllProps)
 
-from fragmenstein import Igor, Victor, Laboratory
+from fragmenstein import Igor, Victor, Laboratory, Monster
 from fragmenstein.laboratory.validator import place_input_validator
 
 pandarallel.initialize()
 
+SUPRESSED_EXCEPTION = Exception  # debug purposes...
+DEFAULT_WEIGHTS = {"N_rotatable_bonds": 3, "\u2206\u2206G": 3, "interaction_uniqueness_metric": -20, "N_unconstrained_atoms": 0.5, "N_constrained_atoms": -0.2, "N_interactions": -5, "N_interactions_lost": 10, "max_hit_Tanimoto": -1, "N_PAINS": 20, "strain_per_HA": 1}
 # ------------------------------------------------------
 
 logger = ph.configure_logger()
@@ -106,6 +110,29 @@ def replace_hits(pdbblock, hits, n_cores, timeout, suffix, **settings):
     # replacements.to_csv(f'fragmenstein_hit_replacements{suffix}.csv')
     return replacements
 
+def UFF_Gibbs(mol):
+    # free energy cost of bound conformer
+    if not isinstance(mol, Chem.Mol) or mol.GetNumHeavyAtoms() == 0:
+        return float('nan')
+    with contextlib.suppress(SUPRESSED_EXCEPTION):
+        AllChem.SanitizeMol(mol)
+        # this is actually UFF
+        copy = Chem.Mol(mol)
+        return Monster.MMFF_score(None, mol, True)
+    return float('nan')
+
+
+params = FilterCatalogParams()
+params.AddCatalog(FilterCatalogParams.FilterCatalogs.PAINS)
+catalog = FilterCatalog(params)
+
+def get_pains(mol) -> List[str]:
+    with contextlib.suppress(Exception):
+        entry: FilterCatalogEntry
+        if not isinstance(mol, Chem.Mol) or mol.GetNumHeavyAtoms() == 0:
+            return []
+        AllChem.SanitizeMol(mol)
+        return [entry.GetDescription() for entry in catalog.GetMatches(mol)]
 
 def merge(hits, pdbblock, suffix, n_cores, combination_size, timeout, max_tasks, blacklist, **settings) -> pd.DataFrame:
     lab = Laboratory(pdbblock=pdbblock, covalent_resi=None)
@@ -232,7 +259,7 @@ class GetRowSimilarity:
         self.hit2fp = {h.GetProp('_Name'): self.fpgen.GetFingerprint(h) for h in hits}
 
     def __call__(self, row: pd.Series):
-        with contextlib.suppress(Exception):
+        with contextlib.suppress(SUPRESSED_EXCEPTION):
             if not isinstance(row.minimized_mol, Chem.Mol):
                 return float('nan')
             elif isinstance(row.hit_names, str):
@@ -260,7 +287,7 @@ class HitIntxnTallier:
         return hit_replacements.set_index('new_name')[columns].fillna(0).copy()
 
     def __call__(self, row: pd.Series):
-        with contextlib.suppress(Exception):
+        with contextlib.suppress(SUPRESSED_EXCEPTION):
             if not isinstance(row.minimized_mol, Chem.Mol) or isinstance(row.hit_names, float):
                 return float('nan'), float('nan')
             present_tally = 0
@@ -289,7 +316,7 @@ class UniquenessMeter:
         self.k = k
 
     def __call__(self, row):
-        with contextlib.suppress(Exception):
+        with contextlib.suppress(SUPRESSED_EXCEPTION):
             return sum([(row[name] / self.tallies[name]) ** self.k for name in self.intxn_names if
                         row[name] and self.tallies[name]])
         return float('nan')
@@ -298,19 +325,23 @@ class UniquenessMeter:
         return sum([row[c] if self.intxn_names[0] != 'hydroph_interaction' else row[c] * 0.5 for c in self.intxn_names])
 
 
-class PenalityMeter:
+class PenaltyMeter:
     def __init__(self, weights):
         self.weights = weights
 
     def __call__(self, row):
-        with contextlib.suppress(Exception):
+        with contextlib.suppress(SUPRESSED_EXCEPTION):
             penalty = 0
             if row.outcome != 'acceptable':
                 return float('inf')
             for col, w in self.weights.items():
+                if col not in row.index:
+                    warn(f'{col} column is missing from df')
+                    continue
                 penalty += row[col] * w
             return penalty
         return float('nan')
+
 
 
 def butina_cluster(mol_list, cutoff=0.35):
@@ -348,14 +379,18 @@ def score(placements, hit_replacements, suffix, hits, weights, **settings):
     tallies = placements[intxn_names].sum()
     ratioed = UniquenessMeter(tallies, intxn_names, k=0.5)
     placements['interaction_uniqueness_metric'] = placements.apply(ratioed, axis=1)
-    penalize = PenalityMeter(weights)
-    placements['ad_hoc_penalty'] = placements.apply(penalize, axis=1)
-    placements['N_rotatable_bonds'] = m.apply(Chem.rdMolDescriptors.CalcNumRotatableBonds)
     placements['N_HA'] = m.apply(Chem.Mol.GetNumHeavyAtoms)
-    # placements['N_interactions'] = placements[[c for c in placements.columns if isinstance(c, tuple)]].fillna(0).sum(axis=1)
-    with contextlib.suppress(Exception):
-        placements['cluster'] = butina_cluster(m.to_list())
+    placements['N_rotatable_bonds'] = m.apply(Chem.rdMolDescriptors.CalcNumRotatableBonds)
     placements['N_interactions'] = placements.apply(ratioed.tally_interactions, axis=1)
+    placements['PAINSes'] = placements.minimized_mol.apply(get_pains)
+    placements['N_PAINS'] = placements.PAINSes.apply(len)
+    placements['UFF_Gibbs'] = placements.minimized_mol.apply(UFF_Gibbs)
+    placements['strain_per_HA'] = placements.UFF_Gibbs / min(placements.N_HA, 0.0001)
+    penalize = PenaltyMeter(weights)
+    placements['ad_hoc_penalty'] = placements.apply(penalize, axis=1)
+    # placements['N_interactions'] = placements[[c for c in placements.columns if isinstance(c, tuple)]].fillna(0).sum(axis=1)
+    with contextlib.suppress(SUPRESSED_EXCEPTION):
+        placements['cluster'] = butina_cluster(m.to_list())
 
 
 if __name__ == '__main__':
@@ -380,7 +415,7 @@ if __name__ == '__main__':
         with open(settings['weights'].strip()) as fh:
             settings['weights'] = json.load(fh)
     else:
-        settings['weights'] = {'∆∆G': 1}
+        settings['weights'] = DEFAULT_WEIGHTS
     # self
     hit_replacements: pd.DataFrame = replace_hits(**settings)
     # run
