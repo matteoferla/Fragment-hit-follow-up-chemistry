@@ -1,6 +1,5 @@
 import requests
 
-
 class DownloadEnamine:
     """
     This class is set up to download Enamine REAL database on a remote machine.

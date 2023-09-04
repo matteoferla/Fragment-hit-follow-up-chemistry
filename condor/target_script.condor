@@ -1,0 +1,25 @@
+# ============================================================
+# This script runs $JOB_NODE_SCRIPT within initial dir $HOME2
+# to specify a particular machine 
+# add `-a 'Requirements=(machine == "orpheus-worker-gpu-13.novalocal")'` as a cmd arg
+# Envs used:
+# * $HOME2 the fake home, e.g. /data/xchem-fragalysis/mferla
+# * $JOB_SCRIPT
+# nice scripts to use for JOB_SCRIPT 
+# /data/xchem-fragalysis/shared/singularity.sh
+# /data/xchem-fragalysis/shared/helloworld.sh
+# ============================================================
+
+Executable      = /bin/bash
+arguments       = $ENV(JOB_SCRIPT)
+Universe        = vanilla
+getenv          = JOB_*,SINGULARITY_*,JUPYTER_*,CONDA_*,APPTAINER_*,APPTAINERENV_*,PYTHON*,HOME2,$SSH*
+initialdir      = $ENV(HOME2)
+Output          = $ENV(HOME2)/logs/condor-log.$(Cluster).$(Process).out
+Error           = $ENV(HOME2)/logs/condor-log.$(Cluster).$(Process).err
+Log             = $ENV(HOME2)/logs/condor-log.$(Cluster).$(Process).log
+request_cpus = Target.TotalSlotCpus
+request_gpus = Target.TotalSlotGPUs
+request_memory = Target.TotalSlotMemory
++RequiresWholeMachine = True
+Queue

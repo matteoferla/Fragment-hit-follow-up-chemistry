@@ -1,0 +1,43 @@
+Bootstrap: library
+Library: https://library.sylabs.io
+From: library/default/rockylinux:9
+
+# singularity build --notest --fakeroot rockyplus.sif rockyplus.def
+
+%post
+    yum update -y
+    yum upgrade -y
+    yum install -y git postfix nano
+    dnf -y install epel-release
+    dnf makecache
+    dnf -y install htop
+    yum install -y cpio
+    yum install -y libXrender
+    dnf config-manager --enable crb
+    yum install xterm xorg-x11-server-Xorg xorg-x11-server-utils xorg-x11-xauth -y
+    echo 'export PS1="[\u@\h \W]\$"' >> /etc/bashrc
+    yum install -y pciutils
+    yum group install -y "Development Tools"
+    yum install -y kernel-devel
+    yum install -y epel-release
+    yum install -y dkms
+    yum install -y libtiff-devel libwebp-devel libzstd-devel
+    # yum install -y software-properties-common
+    # add-apt-repository ppa:graphics-drivers/ppa
+    # dnf module install nvidia-driver:latest-dkms
+    # dnf clean all
+    # dnf -y module install nvidia-driver:latest-dkms
+    dnf makecache    
+    #subscription-manager repos --enable codeready-builder-for-rhel-9-$(uname -i)-rpms
+    #dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+    #dnf makecache
+    #yum install nvidia-driver-latest-dkms
+    #yum install cuda
+    #yum install cuda-drivers
+
+%environment
+    LANG=en_GB.UTF-8
+    PS1="[\u@\h \W]\$"
+
+%labels
+    
