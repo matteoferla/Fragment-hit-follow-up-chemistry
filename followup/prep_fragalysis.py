@@ -2,7 +2,7 @@ import pandas as pd
 from rdkit.Chem import AllChem, PandasTools
 from rdkit import Chem
 from datetime import date
-from typing import Optional
+from typing import Optional, List
 def align(mol_series: pd.Series, ref_hit: Chem.Mol, used_hit: Chem.Mol) -> pd.Series:
     """
     It happens...
@@ -19,6 +19,12 @@ def align(mol_series: pd.Series, ref_hit: Chem.Mol, used_hit: Chem.Mol) -> pd.Se
     new_mols = mol_series.apply(lambda mol: Chem.Mol())
     new_mols.apply(lambda mol: AllChem.TransformConformer(mol.GetConformer(), rototrans))
     return new_mols
+
+def floatify(value):
+    try:
+        return float(value)
+    except Exception:
+        return float('nan')
 
 def prep(df: pd.DataFrame,
          header: Chem.Mol,
@@ -42,6 +48,9 @@ def prep(df: pd.DataFrame,
     :param extras: Extra fields to add to the SDF file, these need to be in the ``header`` Chem.Mol
     :return:
     """
+    # no tuple columns
+    df = df.rename(columns={c: ':'.join(map(str, c)) for c in df.columns if isinstance(c, tuple)}).copy()
+    # sort inputs
     if 'ref_mol' in df.columns:
         pass
     elif ref_mol_names:
@@ -58,14 +67,22 @@ def prep(df: pd.DataFrame,
         df['ref_pdb'] = ref_pdb
     else:
         ValueError('ref_pdb is None and ref_pdb is not in df.columns')
+    # deal with extras
     if extras is None:
         extra_fields = []
+    elif extras is True:
+        extras = []
+        for col in df.columns:
+            df[col] = df[col].apply(floatify)
+            if df[col].fillna(0).apply(abs).sum() > 0:
+                extras.append(col)
     elif isinstance(extras, dict):
         extra_fields = list(extras.keys())
     elif isinstance(extras, list):
         extra_fields = extras
     else:
         raise ValueError('extras should be a dict or a list')
+    df = df.copy()
     with open(outfile, 'w') as sdfh:
         with Chem.SDWriter(sdfh) as w:
             w.write(header)

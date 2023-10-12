@@ -140,3 +140,5 @@ def remove_duplicated(hits: List[Chem.Mol]) -> List[Chem.Mol]:
         return True
 
     return [hit for hit in hits if is_new(hit)]
+
+fragmént = fragment

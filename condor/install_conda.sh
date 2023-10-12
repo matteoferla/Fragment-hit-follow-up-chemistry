@@ -17,10 +17,12 @@ conda update -n base -y -c defaults conda
 # Jupyter stuff
 conda install -y -n base -c conda-forge distro nodejs sqlite jupyterlab jupyter_http_over_ws nb_conda_kernels
 conda update -y -c conda-forge nodejs   # peace among worlds
+pip install -q  jupyter_theme_editor
 
 # install whatever you want here
-pip install -q pandas plotly seaborn
-# pip install fragmenstein nglview pebble pandarallel pandera pyrosetta_help
+pip install -q pandas plotly seaborn pillow pandas pandarallel pandera nglview pebble
+
+# pip install fragmenstein pyrosetta_help
 # pip install $DATA/shared/pyrosetta-2023.27+release.e3ce6ea9faf-cp311-cp311-linux_x86_64.whl
 
 conda clean --all -y

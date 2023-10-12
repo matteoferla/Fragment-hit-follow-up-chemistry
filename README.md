@@ -167,6 +167,14 @@ for hit in hits:
 fhits = remove_duplicated(fhits)
 ```
 
+Using the remote version:
+
+```python
+fmodule = GistImporter.from_github('https://raw.githubusercontent.com/matteoferla/Fragment-hit-follow-up-chemistry/main/followup/fragment.py')
+remove_duplicated = fmodule['remove_duplicated']
+fragmént = fmodule['fragmént']
+```
+
 ## PLIP
 
 PLIP extract interactions from PDB files.
