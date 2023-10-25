@@ -22,6 +22,11 @@ For now see: [:octocat:: EV-D68-3C-protease](https://github.com/matteoferla/EV-D
 
 For the questionnaire for now target analysis MF uses see [questionnaire.md](questionnaire.md).
 
+## Notebooks
+
+Given a Uniprot ID make a sequence logo of the cleavage sites (viral polyprotein)
+[![colab](https://img.shields.io/badge/Run_cleavege-logo.ipynb-f9ab00?logo=googlecolab)](https://colab.research.google.com/github/matteoferla/Fragment-hit-follow-chemistry/blob/master/notebooks/make_cleavage_logo.ipynb)
+
 ## XChem compound libraries
 
 ### Dataset generation
