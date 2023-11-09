@@ -40,6 +40,7 @@ import json
 import pickle
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw
+import contextlib
 
 
 def get_log(level: int = logging.INFO) -> logging.Logger:
@@ -94,7 +95,7 @@ def extract_pdbblocks(reference: str,
     pdb_blocks: Dict[str, str] = {}
     details: Dict[str, Dict] = {}
     chemcomp_tally = defaultdict(int)
-    with pymol2.PyMOL() as pymol:
+    with pymol2.PyMOL() as pymol, contextlib.suppress(Exception):
         pymol.cmd.set('pdb_conect_all', 'on')
         load_reference(pymol, reference)
         for i, row in df.iterrows():
@@ -301,7 +302,7 @@ def get_homolog_chemcomps(reference: str,
     else:
         log.critical('Could not save image - no idea where we are!')
     with Chem.SDWriter(sdf_filename) as sdf:
-        for mol in mols:
+        for mol in sorted(mols, key=Chem.Mol.GetNumHeavyAtoms, reverse=True):
             if mol is None:
                 continue
             sdf.write(mol)
