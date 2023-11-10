@@ -2,6 +2,7 @@ from rdkit import Chem
 from rdkit.Chem import BRICS, AllChem
 from typing import List, Sequence
 from collections import Counter
+from molecular_rectifier import Rectifier
 
 def _get_fused(mol):
     ri = mol.GetRingInfo()
@@ -38,7 +39,12 @@ def _get_ring(mol, commons: List[int], rings_idxs: Sequence[Sequence[int]], keep
         if len(commons) == 2: # Really? I mean a spiro could not have been aromatic...
             m.GetBondBetweenAtoms(*commons).SetBondType(Chem.BondType.DOUBLE)
     m.CommitBatchEdit()
-    ms = Chem.GetMolFrags(m.GetMol(), asMols=True)
+    mol = m.GetMol()
+    try:
+        ms = Chem.GetMolFrags(mol, asMols=True)
+    except Exception as error:
+        mol = Rectifier(mol).fix().mol
+        ms = Chem.GetMolFrags(mol, asMols=True)
     return [m for m in ms if any(a.HasProp('_nice_ring') for a in m.GetAtoms())][0]
 
 def split_fused(mol) -> List[Chem.Mol]:
@@ -105,6 +111,7 @@ def fragment(mol: Chem.Mol, minFragmentSize=4,
             if fragment.GetNumAtoms() < minFragmentSize:
                 continue
             raw_fragments.append(AllChem.RemoveAllHs(fragment))
+    # fix metadata
     for fragment in raw_fragments:
         for k, v in mol.GetPropsAsDict().items():
             if isinstance(v, str):

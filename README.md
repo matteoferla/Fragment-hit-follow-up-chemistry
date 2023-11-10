@@ -175,6 +175,8 @@ fhits = remove_duplicated(fhits)
 Using the remote version:
 
 ```python
+from gist_import import GistImporter
+
 fmodule = GistImporter.from_github('https://raw.githubusercontent.com/matteoferla/Fragment-hit-follow-up-chemistry/main/followup/fragment.py')
 remove_duplicated = fmodule['remove_duplicated']
 fragmént = fmodule['fragmént']
