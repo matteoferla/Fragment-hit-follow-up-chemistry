@@ -3,6 +3,7 @@ from rdkit.Chem import AllChem, PandasTools
 from rdkit import Chem
 from datetime import date
 from typing import Optional, List
+import operator
 def align(mol_series: pd.Series, ref_hit: Chem.Mol, used_hit: Chem.Mol) -> pd.Series:
     """
     It happens...
@@ -32,7 +33,7 @@ def prep(df: pd.DataFrame,
          name_col: str,
          outfile: str='for_fragalysis.sdf',
          ref_mol_names: Optional[str]=None,
-         ref_pdb: Optional[str]=None,
+         ref_pdb_name: Optional[str]=None,
          extras: Optional[dict]=None) -> None:
     """
     Prepare a SDF file for Fragalysis.
@@ -44,7 +45,7 @@ def prep(df: pd.DataFrame,
     :param name_col: name of the column containing the names
     :param outfile: name of the output file
     :param ref_mol_names: comma separated list of names of the reference molecules (for all hits). Ignored if present.
-    :param ref_pdb: name of the protein to use. Ignored if present.
+    :param ref_pdb_name: name of the protein to use. Ignored if present.
     :param extras: Extra fields to add to the SDF file, these need to be in the ``header`` Chem.Mol
     :return:
     """
@@ -63,8 +64,8 @@ def prep(df: pd.DataFrame,
         df['original SMILES'] = df[mol_col].apply(Chem.MolToSmiles)
     if 'ref_pdb' in df.columns:
         pass
-    elif ref_pdb:
-        df['ref_pdb'] = ref_pdb
+    elif ref_pdb_name:
+        df['ref_pdb'] = ref_pdb_name
     else:
         ValueError('ref_pdb is None and ref_pdb is not in df.columns')
     # deal with extras
@@ -83,6 +84,9 @@ def prep(df: pd.DataFrame,
     else:
         raise ValueError('extras should be a dict or a list')
     df = df.copy()
+    df[name_col] = df[name_col].apply(str)\
+                                .str.replace(r'\W', '_', regex=True)\
+                                .apply(operator.itemgetter(slice(None, 50)))
     with open(outfile, 'w') as sdfh:
         with Chem.SDWriter(sdfh) as w:
             w.write(header)
