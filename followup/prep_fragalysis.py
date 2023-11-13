@@ -34,7 +34,8 @@ def prep(df: pd.DataFrame,
          outfile: str='for_fragalysis.sdf',
          ref_mol_names: Optional[str]=None,
          ref_pdb_name: Optional[str]=None,
-         extras: Optional[dict]=None) -> None:
+         extras: Optional[dict]=None,
+         letter_trim: int=20) -> None:
     """
     Prepare a SDF file for Fragalysis.
 
@@ -61,7 +62,7 @@ def prep(df: pd.DataFrame,
     if 'original SMILES' in df.columns:
         pass
     else:
-        df['original SMILES'] = df[mol_col].apply(Chem.MolToSmiles)
+        df['original SMILES'] = df[mol_col].apply(AllChem.RemoveAllHs).apply(Chem.MolToSmiles)
     if 'ref_pdb' in df.columns:
         pass
     elif ref_pdb_name:
@@ -86,12 +87,17 @@ def prep(df: pd.DataFrame,
     df = df.copy()
     df[name_col] = df[name_col].apply(str)\
                                 .str.replace(r'\W', '_', regex=True)\
-                                .apply(operator.itemgetter(slice(None, 50)))
+                                .apply(operator.itemgetter(slice(None, int(letter_trim))))
     with open(outfile, 'w') as sdfh:
         with Chem.SDWriter(sdfh) as w:
             w.write(header)
         PandasTools.WriteSDF(df, sdfh, mol_col, name_col,
                              ['ref_pdb', 'ref_mols', 'original SMILES'] + extra_fields)
+
+def floatify_columns(df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
+    df = df.copy()
+    for col in df.columns:
+        df[col] = df[col].apply(floatify)
 
 def generate_header(method: str,
                     ref_url: Optional[str]= 'https://www.example.com',
