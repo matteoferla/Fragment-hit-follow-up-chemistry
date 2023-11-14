@@ -53,12 +53,12 @@ def prep(df: pd.DataFrame,
     # no tuple columns
     df = df.rename(columns={c: ':'.join(map(str, c)) for c in df.columns if isinstance(c, tuple)}).copy()
     # sort inputs
-    if 'ref_mol' in df.columns:
+    if 'ref_mols' in df.columns:
         pass
     elif ref_mol_names:
         df['ref_mols'] = ref_mol_names
     else:
-        ValueError('ref_mol_names is None and ref_mol is not in df.columns')
+        ValueError('ref_mol_names is None and ref_mols is not in df.columns')
     if 'original SMILES' in df.columns:
         pass
     else:
