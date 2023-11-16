@@ -57,7 +57,9 @@ def search(mol_or_smarts: Union[Chem.Mol, str],
     else:
         smarts = str(mol_or_smarts)
         assert Chem.MolFromSmarts(smarts) is not None, f'Could not parse SMARTS {smarts}'
-
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
     response = requests.get(f'https://new.enaminestore.com/api/v1/catalog/',
                             dict(q=smarts,
                                  cat=catalogue.name if isinstance(catalogue, StoreCatalogues) else str(catalogue),
@@ -67,7 +69,8 @@ def search(mol_or_smarts: Union[Chem.Mol, str],
                                  curPage=1,  # does nothing
                                  pageSize=int(size),  # does nothing
                                  sim=max(float(sim), 0.01),  # does nothing
-                                 )
+                                 ),
+                            headers=headers
                             )
     response.raise_for_status()
     if response.text[0] == '<':
