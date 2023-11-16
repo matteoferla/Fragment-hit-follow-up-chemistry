@@ -8,16 +8,19 @@ from rdkit import Chem
 from typing import Union
 import pandas as pd
 
+
 class StoreTypes(enum.Enum):
     ID = enum.auto()
     CAS = enum.auto()
     MFCD = enum.auto()
     SMARTS = enum.auto()
 
+
 class StoreSSTypes(enum.Enum):
     EXACT = enum.auto()
     SUB = enum.auto()
     SIM = enum.auto()
+
 
 class StoreCatalogues(enum.Enum):
     SCR = enum.auto()
@@ -26,9 +29,11 @@ class StoreCatalogues(enum.Enum):
     MADE = enum.auto()
     EBC = enum.auto()
 
+
 class StoreCurrency(enum.Enum):
     USD = enum.auto()
     EUR = enum.auto()
+
 
 def search(mol_or_smarts: Union[Chem.Mol, str],
            catalogue: StoreCatalogues = StoreCatalogues.REALDB,
@@ -47,25 +52,34 @@ def search(mol_or_smarts: Union[Chem.Mol, str],
     :param sim:
     :return:
     """
-    smarts = Chem.MolToSmiles(mol_or_smarts) if isinstance(mol_or_smarts, Chem.Mol) else str(mol_or_smarts)
+    if isinstance(mol_or_smarts, Chem.Mol):
+        smarts = Chem.MolToSmarts(mol_or_smarts)
+    else:
+        smarts = str(mol_or_smarts)
+        assert Chem.MolFromSmarts(smarts) is not None, f'Could not parse SMARTS {smarts}'
+
     response = requests.get(f'https://new.enaminestore.com/api/v1/catalog/',
                             dict(q=smarts,
                                  cat=catalogue.name if isinstance(catalogue, StoreCatalogues) else str(catalogue),
                                  type=search_type.name if isinstance(search_type, StoreTypes) else str(search_type),
-                                 sstype=structural_type.name if isinstance(structural_type, StoreSSTypes) else str(structural_type),
-                                 curPage=1, # does nothing
-                                 pageSize=int(size),   # does nothing
-                                 sim=max(float(sim), 0.01), # does nothing
+                                 sstype=structural_type.name if isinstance(structural_type, StoreSSTypes) else str(
+                                     structural_type),
+                                 curPage=1,  # does nothing
+                                 pageSize=int(size),  # does nothing
+                                 sim=max(float(sim), 0.01),  # does nothing
                                  )
                             )
     response.raise_for_status()
+    if response.text[0] == '<':
+        raise ValueError(f'Incorrect response (not JSON): {response.text}... Did you pass a SMILES not a SMARTS?')
     if 'searchResults' not in response.json():
         raise ValueError(f'Incorrect query: {response.text}')
     return pd.DataFrame(response.json()['searchResults'])
 
+
 def get_price(enamine_code: str,
-              catalogue:StoreCatalogues = StoreCatalogues.REALDB,
-              currency: StoreCurrency=StoreCurrency.EUR) -> float:
+              catalogue: StoreCatalogues = StoreCatalogues.REALDB,
+              currency: StoreCurrency = StoreCurrency.EUR) -> float:
     """
     Get the price of a compound from the Enamine Store.
 
@@ -77,7 +91,8 @@ def get_price(enamine_code: str,
     db_name = catalogue.name if isinstance(catalogue, StoreCatalogues) else str(catalogue)
     cur_name = currency.name if isinstance(currency, StoreCurrency) else str(currency)
     enamine_code = str(enamine_code).strip()
-    response = requests.get(f'https://new.enaminestore.com/api/v1/catalog/price?id={enamine_code}&cat={db_name}&cur={cur_name}')
+    response = requests.get(
+        f'https://new.enaminestore.com/api/v1/catalog/price?id={enamine_code}&cat={db_name}&cur={cur_name}')
     data = response.json()
     for datum in data['samples']:
         if datum['amount'] != 1.0 or datum['measure'] != 'mg':
