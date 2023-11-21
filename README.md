@@ -299,7 +299,7 @@ NB. For legacy targets in particular, the zip may be broken.
 ### Fragalysis Upload
 
 This is just to prep.
-For a Colab notebook see: [upload_prep.ipynb](https://colab.research.google.com/github/matteoferla/Fragment-hit-follow-up-chemistry/blob/colab/upload_prep.ipynb)
+For a Colab notebook see: [upload_prep.ipynb](https://colab.research.google.com/github/matteoferla/Fragment-hit-follow-up-chemistry/blob/main/colab/upload_prep.ipynb)
 The upload form is at https://fragalysis.diamond.ac.uk/viewer/upload_cset/
 > :construction: The upload code exists in Fragalysis-API old version. Hunt it down.
 
