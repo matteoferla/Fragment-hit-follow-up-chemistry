@@ -51,6 +51,7 @@ def prep(df: pd.DataFrame,
     :return:
     """
     # no tuple columns
+    assert isinstance(df, pd.DataFrame), f'{df} is not a DataFrame'
     df = df.rename(columns={c: ':'.join(map(str, c)) for c in df.columns if isinstance(c, tuple)}).copy()
     # sort inputs
     if 'ref_mols' in df.columns:
@@ -125,6 +126,8 @@ def generate_header(method: str,
     bannermol = Chem.MolFromSmiles(smiles)
     bannermol.SetProp('_Name', 'ver_1.2')
     AllChem.EmbedMolecule(bannermol)
+    if extras is None:
+        extras = {}
     for k, v in {'ref_url': ref_url,
                  'submitter_name': submitter_name,
                  'submitter_email': submitter_email,

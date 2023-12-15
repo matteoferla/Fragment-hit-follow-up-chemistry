@@ -315,6 +315,17 @@ header = generate_header(method='Foo',
                          extras={'∆∆G': 'W. Josiah Gibbs'})
 prep(df, header, 'mol', 'id', 'foo.sdf', 'x1234', 'x1234', ['∆∆G'])
 ```
+Alternatively
+```python
+from gist_import import GistImporter
+from types import ModuleType
+
+fu: ModuleType = GistImporter.from_github('https://raw.githubusercontent.com/matteoferla/Fragment-hit-follow-up-chemistry/main/followup/prep_fragalysis.py').to_module()
+
+header: Chem.Mol = fu.generate_header(...)  # see below
+fu.prep(header, ...)   # see below
+```
+
 
 The header molecule has a bunch of compulsory fields. The extras are optional, but will dictate the table.
 
