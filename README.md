@@ -25,7 +25,14 @@ For the questionnaire for now target analysis MF uses see [questionnaire.md](que
 ## Notebooks
 
 Given a Uniprot ID make a sequence logo of the cleavage sites (viral polyprotein)
-[![colab](https://img.shields.io/badge/Run_cleavege-logo.ipynb-f9ab00?logo=googlecolab)](https://colab.research.google.com/github/matteoferla/Fragment-hit-follow-chemistry/blob/master/notebooks/make_cleavage_logo.ipynb)
+[![colab](https://img.shields.io/badge/Run_cleavege-logo.ipynb-f9ab00?logo=googlecolab)](https://colab.research.google.com/github/matteoferla/Fragment-hit-follow-chemistry/blob/main/colab/make_cleavage_logo.ipynb)
+
+Given a Fragalysis valid upload set, fix it to pick the best Fragalysis template and do minor tweaks to make it fit there.
+I.e. pretend an induced fit compound binds by lock and key.
+[![colab](https://img.shields.io/badge/Run_cleavege-logo.ipynb-f9ab00?logo=googlecolab)](https://colab.research.google.com/github/matteoferla/Fragment-hit-follow-up-chemistry/blob/main/colab/upload_fix.ipynb).
+
+For the preparation of an upload file
+[![colab](https://img.shields.io/badge/Run_cleavege-logo.ipynb-f9ab00?logo=googlecolab)](https://colab.research.google.com/github/matteoferla/Fragment-hit-follow-up-chemistry/blob/main/colab/upload_prep.ipynb).
 
 ## XChem compound libraries
 
