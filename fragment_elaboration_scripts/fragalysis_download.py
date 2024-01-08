@@ -34,6 +34,7 @@ class QuickDownloader:
     content without having to waste time with filepaths.
 
     .. code-block:: python
+
         from fragalysis_api import QuickDownloader
         import pandas as pd
         from typing import List

@@ -7,11 +7,17 @@ It does the following step:
 * Blast it against the PDB dataset in NCBI's servers
 
 .. code-block:: bash
+
     $ retrieve-PDB-ligands --reference template.pdb --sdf compounds.sdf --error_sdf errors.sdf
     \ --blast blast_hits.csv --image compounds.png
 
-# --- YAML file for installation -------
-# conda env update -n thief --file thief.yml
+-------------
+YAML file for installation
+-------------
+
+.. code-block:: bash
+
+    conda env update -n thief --file thief.yml
 
 name: thief
 channels:

@@ -6,6 +6,7 @@ class DownloadEnamine:
     Instatiation requires plain ``username`` and ``password``.
 
     .. code-block::python
+
         de = DownloadEnamine('foo.bar@baz.ac.uk', 'Foo123')
         de.download_all('REAL')
 

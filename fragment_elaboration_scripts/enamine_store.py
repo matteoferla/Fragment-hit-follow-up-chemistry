@@ -7,28 +7,35 @@ This is meant to be used by the browser. Safeguards are in place and will not wo
 I set a sleep of 30 seconds between calls to be safe.
 
 .. code-block:: python
+
     from fragment_elaboration_scripts.enamine_store import search, StoreCatalog, StoreCurrency
     get_price(enamine_code, catalogue=StoreCatalog.REALDB, currency=StoreCurrency.EUR)
 
 .. code-block:: python
+
     import pandas as pd
     from rdkit import Chem
     from fragment_elaboration_scripts.enamine_store import search, StoreCatalog, StoreTypes, StoreSSTypes
     mol: Chem.Mol
     df: pd.DataFrame = search(mol, catalogue=StoreCatalog.REALDB, search_type=StoreTypes.SMARTS)
 
-### CLI Usage
+------------
+CLI Usage
+------------
 
 .. code-block:: bash
+
     $ enamine-store price Z12345678 --catalogue REALDB --currency EUR
 
 or
 
 .. code-block:: bash
+
     $ enamine-store search Cn1cnc2c1c(=O)n(C)c(=O)n2C > caffeine_analogues.csv
 
-
-### Installation
+-----------
+Installation
+-----------
 
 No special installation requirements beyond ``pip install fragment_elaboration_scripts``
 """
@@ -115,6 +122,7 @@ def get_price(enamine_code: str,
     Get the price of a compound from the Enamine Store.
     
     .. code-block:: python
+
         price: float = get_price(enamine_code, catalogue=StoreCatalog.REALDB, currency=StoreCurrency.EUR)
 
     :param enamine_code: str. Enamine code, e.g. Z12345678

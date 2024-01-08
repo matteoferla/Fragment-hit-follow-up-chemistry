@@ -7,17 +7,23 @@ NB. I have not asked for permission to query ZINC programmatically
 
 See ``ZincInformer`` for the class.
 
-### CLI Usage
+-------------
+CLI Usage
+-------------
 
 .. code-block:: bash
+
     $ python -m zinc_data ZINC00000001 ZINC00000002 ZINC00000003 > zinc.json
 
 or
 
 .. code-block:: bash
+
     $ python -m zinc_data ZINC00000001 ZINC00000002 ZINC00000003 -o zinc.csv
 
-### Installation
+-------------
+Installation
+-------------
 
 No special installation requirements beyond ``pip install fragment_elaboration_scripts``
 """
@@ -37,6 +43,7 @@ class ZincInformer(collections.abc.MutableMapping):
     The instance is callable, so can be used in a ``pandas.Series.apply``:
 
     .. code-block::python
+
         zinfo: Callable = ZincInformer()
         data: pd.DataFrame = series.apply(zinfo)
 
@@ -44,6 +51,7 @@ class ZincInformer(collections.abc.MutableMapping):
     This is useful for caching without repeating requests.
 
     .. code-block::python
+
         zinfo: Callable = ZincInformer()
         zinfo.load('zinc.json')
         data: Dict = zinfo['ZINC00000001']
