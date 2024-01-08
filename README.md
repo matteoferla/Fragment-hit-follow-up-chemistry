@@ -21,6 +21,14 @@ before any activity data can be determined and any that does exist are deep in n
 For now see: [:octocat:: EV D68-3C protease](https://github.com/matteoferla/EV-D68-3C-protease) or
 [:octocat:: EV A71-2A protease](https://github.com/matteoferla/EV-A71-2A-elaborations).
 
+[![Read the Docs](https://fragment-hit-follow-up-chemistry.readthedocs.io/en/latest/fragment_elaboration_scripts.html)](https://rdkit-to-params.readthedocs.io/en/latest/index.html)
+[![https img shields io pypi pyversions fragment_elaboration_scripts logo python](https://img.shields.io/pypi/pyversions/fragment--elaboration--scripts?logo=python)](https://pypi.org/project/fragment-elaboration-scripts)
+[![https img shields io pypi v fragment_elaboration_scripts logo python](https://img.shields.io/pypi/v/fragment--elaboration--scripts?logo=python)](https://pypi.org/project/fragment-elaboration-scripts)
+[![https img shields io pypi dm fragment_elaboration_scripts logo python](https://img.shields.io/pypi/dm/fragment--elaboration--scripts?logo=python)](https://pypi.org/project/fragment-elaboration-scripts)
+[![https img shields io github license matteoferla fragment_elaboration_scripts logo github](https://img.shields.io/github/license/matteoferla/Fragment-hit-follow-up-chemistry?logo=github)](https://github.com/matteoferla/Fragment-hit-follow-up-chemistry/raw/main/LICENSE)
+[![https img shields io github last commit matteoferla rdkit_to_params logo github](https://img.shields.io/github/last-commit/matteoferla/Fragment-hit-follow-up-chemistry?logo=github)](https://github.com/matteoferla/Fragment-hit-follow-up-chemistry)
+[![https img shields io github commit activity m matteoferla rdkit_to_params logo github](https://img.shields.io/github/commit-activity/m/matteoferla/Fragment-hit-follow-up-chemistry?logo=github)](https://github.com/matteoferla/Fragment-hit-follow-up-chemistry)
+
 ## Colab notebooks
 
 Given a Uniprot ID make a sequence logo of the cleavage sites (viral polyprotein)
