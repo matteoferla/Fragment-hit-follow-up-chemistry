@@ -14,6 +14,10 @@ class DownloadEnamine:
     no longer applies anyway (plain text username and password in GET header "Authorization").
 
     The URLs pointing to the download pages were copied off manually.
+    'https://ftp.enamine.net/download/{catalog}/{filename}',
+    which is downloaded as `de.download(catalog, filename)`.
+
+    The catalogue keyword is some uppercase value.
     """
     REAL = [
         'Enamine_REAL_HAC_6_21_420M_CXSMILES.cxsmiles.bz2',
@@ -41,26 +45,37 @@ class DownloadEnamine:
                                          'task': 'user.login'})
         response.raise_for_status()
 
-    def download_all(self, catalogue='REAL'):
+    def download_all(self, catalog='REAL'):
         """
-        The URLs of the databases files are in the class attribute of that same catalogue name (i.e. ``REAL``).
+        The URLs of the databases files are in the class attribute of that same catalog name (i.e. ``REAL``).
         """
-        for filename in getattr(self, catalogue):
+        for filename in getattr(self, catalog):
             self.download('REAL', filename)
 
-    def check(self, catalogue='REAL'):
-        for filename in getattr(self, catalogue):
-            with self.sesh.get(f'https://ftp.enamine.net/download/{catalogue}/{filename}', stream=True) as r:
+    def check(self, catalog='REAL'):
+        for filename in getattr(self, catalog):
+            with self.sesh.get(f'https://ftp.enamine.net/download/{catalog}/{filename}', stream=True) as r:
                 r.raise_for_status()  # requests.exceptions.HTTPError
                 for chunk in r.iter_content(chunk_size=8192):
                     break
 
-    def download(self, catalogue, filename):
+    def download(self, catalog, filename):
         """
-        Downloads the ``filename`` of the given ``catalogue``
+        Downloads the ``filename`` of the given ``catalog``
         """
-        with self.sesh.get(f'https://ftp.enamine.net/download/{catalogue}/{filename}', stream=True) as r:
+        with self.sesh.get(f'https://ftp.enamine.net/download/{catalog}/{filename}', stream=True) as r:
             r.raise_for_status()
             with open(filename, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=8192):
                     f.write(chunk)
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Download Enamine REAL database.')
+    parser.add_argument('username', type=str, help='username')
+    parser.add_argument('password', type=str, help='password')
+    args = parser.parse_args()
+
+    de = DownloadEnamine(args.username, args.password)
+    de.download_all('REAL')

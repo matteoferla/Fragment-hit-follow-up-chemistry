@@ -6,6 +6,9 @@ It does the following step:
 * Get the sequence of the longest chain in the PDB file
 * Blast it against the PDB dataset in NCBI's servers
 
+.. code-block:: bash
+    $ retrieve-PDB-ligands --reference template.pdb --sdf compounds.sdf --error_sdf errors.sdf
+    \ --blast blast_hits.csv --image compounds.png
 
 # --- YAML file for installation -------
 # conda env update -n thief --file thief.yml
@@ -16,7 +19,7 @@ channels:
   - schrodinger
   - defaults
 dependencies:
-  - python==3.12
+  - python==3.11
   # pymol-bundle
   - pymol-open-source
   - pip
@@ -437,7 +440,7 @@ class LigandHunter:
         # TODO find the part of the code that is somehow truncated between commits!!
 
 
-if __name__ == '__main__':
+def main():
     import argparse
 
     parser = argparse.ArgumentParser(description='Get chemical components from homologs in the PDB')
@@ -457,3 +460,6 @@ if __name__ == '__main__':
                           error_sdf_filename=args.error_sdf,
                             log_level=args.log_level,
                             fluff_marker=args.fluff_marker)
+
+if __name__ == '__main__':
+    main()

@@ -62,7 +62,7 @@ def init_pyrosetta():
     pyrosetta.rosetta.basic.options.set_boolean_option('in:auto_setup_metals', True)
 
 
-if __name__ == '__main__':
+def main():
     import argparse
 
     parser = argparse.ArgumentParser(description='Minimise target without electron density')
@@ -77,3 +77,6 @@ if __name__ == '__main__':
          constraint_weight=args.constraint_weight,
          cycles=args.cycles
          )
+
+if __name__ == '__main__':
+    main()

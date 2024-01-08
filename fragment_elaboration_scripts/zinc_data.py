@@ -1,3 +1,27 @@
+"""
+A very simple script to get info from Zinc.
+Zinc, as far as I can tell, does not have an API,
+so the HTML has to be scraped.
+
+NB. I have not asked for permission to query ZINC programmatically
+
+See ``ZincInformer`` for the class.
+
+### CLI Usage
+
+.. code-block:: bash
+    $ python -m zinc_data ZINC00000001 ZINC00000002 ZINC00000003 > zinc.json
+
+or
+
+.. code-block:: bash
+    $ python -m zinc_data ZINC00000001 ZINC00000002 ZINC00000003 -o zinc.csv
+
+### Installation
+
+No special installation requirements beyond ``pip install fragment_elaboration_scripts``
+"""
+
 import requests, collections, contextlib, json
 from bs4 import BeautifulSoup
 
@@ -10,9 +34,24 @@ class ZincInformer(collections.abc.MutableMapping):
     The values can be accessed as a subscript or by calling the instance,
     the latter captures errors declared during initialisation by the argument ``suppressed_exception``.
 
+    The instance is callable, so can be used in a ``pandas.Series.apply``:
+
     .. code-block::python
-        zinfo = ZincInformer()
+        zinfo: Callable = ZincInformer()
         data: pd.DataFrame = series.apply(zinfo)
+
+    The data is stored in a dictionary, so can be dumped to a JSON file and loaded back in.
+    This is useful for caching without repeating requests.
+
+    .. code-block::python
+        zinfo: Callable = ZincInformer()
+        zinfo.load('zinc.json')
+        data: Dict = zinfo['ZINC00000001']
+        print(zinfo.data)
+        zinfo.dump('zinc.json')
+
+    The data is fetched via a call by ``get_soup`` and then parsed by ``get_zinc_info``,
+    which calls ``get_dl`` and ``polísh``.
     """
 
     def __init__(self, suppressed_exception=Exception):
@@ -93,3 +132,34 @@ class ZincInformer(collections.abc.MutableMapping):
                 'inchikey': soup.find('input', dict(id="substance-inchikey-field")).attrs['value'].strip(),
                 **self.polísh(self.get_dl(soup))
                 }
+
+
+# ----------------- CLI ---------------------------------------------------------------------------------------------
+
+def main():
+    import argparse
+    import pandas as pd
+    from typing import List, Dict
+
+    parser = argparse.ArgumentParser(description='Get info from Zinc.')
+    parser.add_argument('zinc_ids', nargs='+', help='Zinc IDs')
+    parser.add_argument('-o', '--output', help='Output CSV file', default='')
+    parser.add_argument('-c', '--cache', help='Saved cache file', default='')
+    args = parser.parse_args()
+    zinformer = ZincInformer()
+    if args.cache:
+        zinformer.load(args.cache)
+    details: List[Dict] = []
+    zinc_id: str
+    for zinc_id in args.zinc_ids:
+        info = {'id': zinc_id, **zinformer(zinc_id)}
+        details.append(info)
+    if args.cache:
+        zinformer.dump(args.cache)
+    if args.output:
+        pd.DataFrame(details).to_csv(args.output, index=False)
+    else:
+        print(zinformer.data)
+
+if __name__ == '__main__':
+    main()

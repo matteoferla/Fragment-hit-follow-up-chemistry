@@ -1,6 +1,9 @@
-# https://gist.github.com/alanbchristie/ce49248560060c9562d7f7e34f8172af
+"""
+https://gist.github.com/alanbchristie/ce49248560060c9562d7f7e34f8172af
 
-# I have never got this to work.
+I have never got this to work.
+
+"""
 
 import os
 import base64

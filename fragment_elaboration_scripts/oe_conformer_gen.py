@@ -106,3 +106,11 @@ def oeb_to_sdf(in_filename: str, out_filename: str, tally_printable=1_000):
     # done
     print(f'{i} molecules saved')
     ofs.close()
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description='Convert sdf to oeb')
+    parser.add_argument('in_filename', type=str, help='input filename')
+    parser.add_argument('out_filename', type=str, help='output filename')
+    args = parser.parse_args()
+    oeb_to_sdf(in_filename=args.in_filename, out_filename=args.out_filename)

@@ -67,6 +67,10 @@ def fragment(mol: Chem.Mol, minFragmentSize=4,
     """
     Wrapper for BRICSDecompose, which keeps metadata.
 
+    BRICS is good, but has two problems for my use.
+    It does not keep the metadata and it does not split fused/spiro rings, which is understandable,
+    but in this case I want to split them.
+
     :param mol:
     :param minFragmentSize:
     :param fused_splitting: Split fused/spiro rings? See ``split_fused``
@@ -149,3 +153,27 @@ def remove_duplicated(hits: List[Chem.Mol]) -> List[Chem.Mol]:
     return [hit for hit in hits if is_new(hit)]
 
 fragmént = fragment
+
+def main():
+    import argparse
+    from rdkit import Chem
+
+    parser = argparse.ArgumentParser(description='Fragment a molecule')
+    parser.add_argument('sdf', type=str, help='sdf file')
+    parser.add_argument('output', type=str, help='sdf outfile')
+    parser.add_argument('--minFragmentSize', type=int, default=7, help='Minimum fragment size')
+
+    args = parser.parse_args()
+
+    with Chem.SDMolSupplier(args.sdf) as suppl:
+        hits: List[Chem.Mol] = [mol for mol in suppl if mol is not None]
+    fhits: List[Chem.Mol] = []
+    for hit in hits:
+        fhits.extend(fragmént(hit, minFragmentSize=args.minFragmentSize, fused_splitting=True))
+    fhits: List[Chem.Mol] = remove_duplicated(fhits)
+    with Chem.SDWriter(args.output) as writer:
+        for hit in fhits:
+            writer.write(hit)
+
+if __name__ == '__main__':
+    main()
