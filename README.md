@@ -50,7 +50,7 @@ Given a list of compounds, get its source library. This is not an inchikey looku
 So silly amount of pain.
 
 ```python
-from followup.row_getter import RowGetter
+from fragment_elaboration_scripts.row_getter import RowGetter
 
 library_collection = pd.read_csv('combined-XChem-libraries.csv', index_col=0)
 PandasTools.AddMoleculeColumnToFrame(library_collection, 'SMILES', 'molecule', True)
@@ -167,10 +167,10 @@ BRICS is good, but has two problems for my use.
 It does not keep the metadata and it does not split fused/spiro rings, which is understandable,
 but in this case I want to split them.
 
-In [followup.fragment](followup/fragment.py) there is a function (`fragmént`) to fragment a molecule into frágments.
+In [fragment_elaboration_scripts.fragment](fragment_elaboration_scripts/fragment.py) there is a function (`fragmént`) to fragment a molecule into frágments.
 
 ```python
-from followup.fragment import fragmént, remove_duplicated
+from fragment_elaboration_scripts.fragment import fragmént, remove_duplicated
 
 fhits: List[Chem.Mol] = []
 for hit in hits:
@@ -184,7 +184,7 @@ Using the remote version:
 ```python
 from gist_import import GistImporter
 
-fmodule = GistImporter.from_github('https://raw.githubusercontent.com/matteoferla/Fragment-hit-follow-up-chemistry/main/followup/fragment.py')
+fmodule = GistImporter.from_github('https://raw.githubusercontent.com/matteoferla/Fragment-hit-follow-up-chemistry/main/fragment_elaboration_scripts/fragment.py')
 remove_duplicated = fmodule['remove_duplicated']
 fragmént = fmodule['fragmént']
 ```
@@ -195,7 +195,7 @@ PLIP extract interactions from PDB files.
 
 NB. `intxn` is non-standard and unclear to many, please don't copy.
 
-In [followup.plip](followup/plip.py) there is a class to run PLIP on a PDB file
+In [fragment_elaboration_scripts.plip](fragment_elaboration_scripts/plip.py) there is a class to run PLIP on a PDB file
 and converts the results into a uniform format.
 
 ```python
@@ -230,7 +230,7 @@ and https://blog.matteoferla.com/2023/07/a-note-no-plip-interactions.html
 
 ## Fragmenstein
 
-In [followup.fragmenstein_merge_sw_place](followup/fragmenstein_merge_sw_place.py)
+In [fragment_elaboration_scripts.fragmenstein_merge_sw_place](fragment_elaboration_scripts/fragmenstein_merge_sw_place.py)
 is a script to run Fragmenstein on a PDB file and SDF hits, merge them,
 find analogues via SmallWorld and place them in the PDB.
 
@@ -273,16 +273,16 @@ Typical folder format in Fragalysis is:
 
 ### Fauxalysis
 
-The latter can be replicated with `make_fauxalysis` from [followup.fauxalysis](followup/fauxalysis.py)
+The latter can be replicated with `make_fauxalysis` from [fragment_elaboration_scripts.fauxalysis](fragment_elaboration_scripts/fauxalysis.py)
 
 The dummy Fragalysis download structure is needed for a few things.
 
 ### Fragalysis Download
 
-In [followup.fragalysis_download](followup/fragalysis_download.py) there is a script to download a Fragalysis target.
+In [fragment_elaboration_scripts.fragalysis_download](fragment_elaboration_scripts/fragalysis_download.py) there is a script to download a Fragalysis target.
 
 ```python
-from followup/fragalysis_download import QuickDownloader
+from fragment_elaboration_scripts/fragalysis_download import QuickDownloader
 import pandas as pd
 from typing import List
 print(f'Default settings are: {QuickDownloader.api_data}')
@@ -311,7 +311,7 @@ The upload form is at https://fragalysis.diamond.ac.uk/viewer/upload_cset/
 > :construction: The upload code exists in Fragalysis-API old version. Hunt it down.
 
 ```python
-from followup.prep_fragalysis import prep, generate_header
+from fragment_elaboration_scripts.prep_fragalysis import prep, generate_header
 header = generate_header(method='Foo',
                          ref_url='https://www.example.com',
                          submitter_name='unknown',
@@ -327,7 +327,7 @@ Alternatively
 from gist_import import GistImporter
 from types import ModuleType
 
-fu: ModuleType = GistImporter.from_github('https://raw.githubusercontent.com/matteoferla/Fragment-hit-follow-up-chemistry/main/followup/prep_fragalysis.py').to_module()
+fu: ModuleType = GistImporter.from_github('https://raw.githubusercontent.com/matteoferla/Fragment-hit-follow-up-chemistry/main/fragment_elaboration_scripts/prep_fragalysis.py').to_module()
 
 header: Chem.Mol = fu.generate_header(...)  # see below
 fu.prep(header, ...)   # see below
@@ -347,7 +347,7 @@ Due to stupid reasons, Xe was adopted in the fragment network. But this is not n
 ```python
 from rdkit import Chem
 from rkdik.Chem import AllChem
-from followup.prep_fragalysis import DummyMasker  # from rdkit_to_params.utils
+from fragment_elaboration_scripts.prep_fragalysis import DummyMasker  # from rdkit_to_params.utils
 
 with Chem.SDWriter('molecules-for-upload.sdf') as writer:
     writer.write(header)
@@ -394,7 +394,7 @@ Due to size, the OE Omega conformers are not included.
 
 ### Zinc data
 
-`ZincInformer` in [zinc_data.py](followup/zinc_data.py) is a class to get data from a series of ZINC IDs.
+`ZincInformer` in [zinc_data.py](fragment_elaboration_scripts/zinc_data.py) is a class to get data from a series of ZINC IDs.
 
 ### Enamine REAL DB download
 
