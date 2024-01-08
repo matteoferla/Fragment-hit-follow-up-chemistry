@@ -7,7 +7,7 @@ build:
 
 sphinx:
    # sphinx-apidoc -o .readthedocs . .readthedocs --full -A 'Matteo Ferla';
-   configuration: .readthedocs/source/conf.py
+   configuration: .readthedocs/conf.py
    builder: html
    fail_on_warning: false
 
