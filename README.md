@@ -21,7 +21,7 @@ before any activity data can be determined and any that does exist are deep in n
 For now see: [:octocat:: EV D68-3C protease](https://github.com/matteoferla/EV-D68-3C-protease) or
 [:octocat:: EV A71-2A protease](https://github.com/matteoferla/EV-A71-2A-elaborations).
 
-[![Read the Docs](https://fragment-hit-follow-up-chemistry.readthedocs.io/en/latest/fragment_elaboration_scripts.html)](https://rdkit-to-params.readthedocs.io/en/latest/index.html)
+[![Read the Docs](https://img.shields.io/readthedocs/fragment-hit-follow-up-chemistry)](https://fragment-hit-follow-up-chemistry.readthedocs.io/en/latest/fragment_elaboration_scripts.html)
 [![https img shields io pypi pyversions fragment_elaboration_scripts logo python](https://img.shields.io/pypi/pyversions/fragment--elaboration--scripts?logo=python)](https://pypi.org/project/fragment-elaboration-scripts)
 [![https img shields io pypi v fragment_elaboration_scripts logo python](https://img.shields.io/pypi/v/fragment--elaboration--scripts?logo=python)](https://pypi.org/project/fragment-elaboration-scripts)
 [![https img shields io pypi dm fragment_elaboration_scripts logo python](https://img.shields.io/pypi/dm/fragment--elaboration--scripts?logo=python)](https://pypi.org/project/fragment-elaboration-scripts)
