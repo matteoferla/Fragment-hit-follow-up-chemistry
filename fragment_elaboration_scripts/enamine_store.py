@@ -47,6 +47,9 @@ import pandas as pd
 
 
 class StoreTypes(enum.Enum):
+    """
+    EnamineStore types of searches: ID, CAS, MFCD, SMARTS
+    """
     ID = enum.auto()
     CAS = enum.auto()
     MFCD = enum.auto()
@@ -54,12 +57,18 @@ class StoreTypes(enum.Enum):
 
 
 class StoreSSTypes(enum.Enum):
+    """
+    EnamineStore types of structural searches: EXACT, SUB, SIM
+    """
     EXACT = enum.auto()
     SUB = enum.auto()
     SIM = enum.auto()
 
 
 class StoreCatalog(enum.Enum):
+    """
+    EnamineStore catalogues: SCR, BB, REALDB, MADE, EBC
+    """
     SCR = enum.auto()
     BB = enum.auto()
     REALDB = enum.auto()
@@ -68,6 +77,11 @@ class StoreCatalog(enum.Enum):
 
 
 class StoreCurrency(enum.Enum):
+    """
+    EnamineStore currencies: USD, EUR
+
+    No other currencies are supported.
+    """
     USD = enum.auto()
     EUR = enum.auto()
 

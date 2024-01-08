@@ -1,11 +1,8 @@
 fragment\_elaboration\_scripts package
-======================================
-
-Submodules
-----------
+######################################
 
 fragment\_elaboration\_scripts.enamine\_catalog\_download module
-----------------------------------------------------------------
+================================================================
 
 .. automodule:: fragment_elaboration_scripts.enamine_catalog_download
    :members:
@@ -13,7 +10,7 @@ fragment\_elaboration\_scripts.enamine\_catalog\_download module
    :show-inheritance:
 
 fragment\_elaboration\_scripts.enamine\_store module
-----------------------------------------------------
+====================================================
 
 .. automodule:: fragment_elaboration_scripts.enamine_store
    :members:
@@ -21,7 +18,7 @@ fragment\_elaboration\_scripts.enamine\_store module
    :show-inheritance:
 
 fragment\_elaboration\_scripts.fauxalysis module
-------------------------------------------------
+================================================
 
 .. automodule:: fragment_elaboration_scripts.fauxalysis
    :members:
@@ -29,7 +26,7 @@ fragment\_elaboration\_scripts.fauxalysis module
    :show-inheritance:
 
 fragment\_elaboration\_scripts.fragalysis\_download module
-----------------------------------------------------------
+==========================================================
 
 .. automodule:: fragment_elaboration_scripts.fragalysis_download
    :members:
@@ -37,7 +34,7 @@ fragment\_elaboration\_scripts.fragalysis\_download module
    :show-inheritance:
 
 fragment\_elaboration\_scripts.fragmenstein\_merge\_sw\_place module
---------------------------------------------------------------------
+====================================================================
 
 .. automodule:: fragment_elaboration_scripts.fragmenstein_merge_sw_place
    :members:
@@ -45,7 +42,7 @@ fragment\_elaboration\_scripts.fragmenstein\_merge\_sw\_place module
    :show-inheritance:
 
 fragment\_elaboration\_scripts.fragment module
-----------------------------------------------
+==============================================
 
 .. automodule:: fragment_elaboration_scripts.fragment
    :members:
@@ -53,7 +50,7 @@ fragment\_elaboration\_scripts.fragment module
    :show-inheritance:
 
 fragment\_elaboration\_scripts.lock\_n\_keyify module
------------------------------------------------------
+=====================================================
 
 .. automodule:: fragment_elaboration_scripts.lock_n_keyify
    :members:
@@ -61,7 +58,7 @@ fragment\_elaboration\_scripts.lock\_n\_keyify module
    :show-inheritance:
 
 fragment\_elaboration\_scripts.misc module
-------------------------------------------
+==========================================
 
 .. automodule:: fragment_elaboration_scripts.misc
    :members:
@@ -69,7 +66,7 @@ fragment\_elaboration\_scripts.misc module
    :show-inheritance:
 
 fragment\_elaboration\_scripts.oe\_conformer\_gen module
---------------------------------------------------------
+========================================================
 
 .. automodule:: fragment_elaboration_scripts.oe_conformer_gen
    :members:
@@ -77,7 +74,7 @@ fragment\_elaboration\_scripts.oe\_conformer\_gen module
    :show-inheritance:
 
 fragment\_elaboration\_scripts.plip module
-------------------------------------------
+==========================================
 
 .. automodule:: fragment_elaboration_scripts.plip
    :members:
@@ -85,7 +82,7 @@ fragment\_elaboration\_scripts.plip module
    :show-inheritance:
 
 fragment\_elaboration\_scripts.prep\_fragalysis module
-------------------------------------------------------
+======================================================
 
 .. automodule:: fragment_elaboration_scripts.prep_fragalysis
    :members:
@@ -93,7 +90,7 @@ fragment\_elaboration\_scripts.prep\_fragalysis module
    :show-inheritance:
 
 fragment\_elaboration\_scripts.pyrosetta\_min module
-----------------------------------------------------
+====================================================
 
 .. automodule:: fragment_elaboration_scripts.pyrosetta_min
    :members:
@@ -101,7 +98,7 @@ fragment\_elaboration\_scripts.pyrosetta\_min module
    :show-inheritance:
 
 fragment\_elaboration\_scripts.retrieve\_PDB\_ligands module
-------------------------------------------------------------
+============================================================
 
 .. automodule:: fragment_elaboration_scripts.retrieve_PDB_ligands
    :members:
@@ -109,7 +106,7 @@ fragment\_elaboration\_scripts.retrieve\_PDB\_ligands module
    :show-inheritance:
 
 fragment\_elaboration\_scripts.row\_getter module
--------------------------------------------------
+=================================================
 
 .. automodule:: fragment_elaboration_scripts.row_getter
    :members:
@@ -117,7 +114,7 @@ fragment\_elaboration\_scripts.row\_getter module
    :show-inheritance:
 
 fragment\_elaboration\_scripts.upload\_fragalysis module
---------------------------------------------------------
+========================================================
 
 .. automodule:: fragment_elaboration_scripts.upload_fragalysis
    :members:
@@ -125,7 +122,7 @@ fragment\_elaboration\_scripts.upload\_fragalysis module
    :show-inheritance:
 
 fragment\_elaboration\_scripts.zinc\_data module
-------------------------------------------------
+================================================
 
 .. automodule:: fragment_elaboration_scripts.zinc_data
    :members:
@@ -133,7 +130,7 @@ fragment\_elaboration\_scripts.zinc\_data module
    :show-inheritance:
 
 Module contents
----------------
+===============
 
 .. automodule:: fragment_elaboration_scripts
    :members:
