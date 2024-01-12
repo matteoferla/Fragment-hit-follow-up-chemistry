@@ -11,6 +11,14 @@ It does the following step:
     $ retrieve-PDB-ligands --reference template.pdb --sdf compounds.sdf --error_sdf errors.sdf
     \ --blast blast_hits.csv --image compounds.png
 
+where
+
+* ``template.pdb`` is the PDB file of the protein you want to steal ligands for.
+* ``sdf`` is the output file of the ligands
+* ``errors.sdf`` is the output file of the ligands that could not be processed
+* ``blast_hits.csv`` is the output file of the blast hits
+* ``compounds.png`` is the output file of the ligands as a PNG image
+
 -------------
 YAML file for installation
 -------------
@@ -26,7 +34,7 @@ channels:
   - defaults
 dependencies:
   - python==3.11
-  # pymol-bundle
+  # ``pymol-bundle`` mysteriously does not install by yaml or in certain places, but works the same
   - pymol-open-source
   - pip
   - pip:

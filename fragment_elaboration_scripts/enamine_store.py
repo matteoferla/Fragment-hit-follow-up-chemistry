@@ -1,6 +1,6 @@
 """
 This uses the new Enamine Store which does not require authentication.
-Nor does the old one work anymore.
+But the old store does not work anymore so that API is a dead end.
 
 The new one is a REST API, but the documentation is not public.
 This is meant to be used by the browser. Safeguards are in place and will not work on residential IPs.

@@ -1,4 +1,5 @@
 # Ultility scripts
+For full details see [![Read the Docs](https://img.shields.io/readthedocs/fragment-hit-follow-up-chemistry)](https://fragment-hit-follow-up-chemistry.readthedocs.io/en/latest/fragment_elaboration_scripts.html)
 
 ## Fragment theft
 
