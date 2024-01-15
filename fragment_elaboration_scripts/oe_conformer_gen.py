@@ -14,10 +14,10 @@ def init_omega(dense=True):
     """
     Initialise omega
 
-    :param dense: use ``oeomega.OEOmegaSampling_Dense``?
+    :param dense: use ``oeomega.OEOmegaSampling_Dense`` or ``oeomega.OEOmegaSampling_FastROCS``?
     :return:
     """
-    omegaOpts = oeomega.OEOmegaOptions(oeomega.OEOmegaSampling_Dense) if dense else oeomega.OEOmegaOptions()
+    omegaOpts = oeomega.OEOmegaOptions(oeomega.OEOmegaSampling_Dense) if dense else oeomega.OEOmegaOptions(oeomega.OEOmegaSampling_FastROCS)
     opts = oechem.OESimpleAppOptions(omegaOpts, "Omega", oechem.OEFileStringType_Mol, oechem.OEFileStringType_Mol3D)
     # print(oechem.OEConfigureOpts(opts, [], False))
     omegaOpts.UpdateValues(opts)
@@ -47,11 +47,13 @@ def sdf_to_oeb(in_filename: str, out_filename: str, dense=True, tally_printable=
 
     # inner
     def gen_conf_inner(mol: oechem.OEMol) -> None:
+        if not isinstance(mol, oechem.OEMol):
+            return
         ret_code = omega.Build(mol)
         ret_code_tallies[ret_codes[ret_code]] += 1
         if ret_code == oeomega.OEOmegaReturnCode_UnspecifiedStereo:
             for enantiomer in oeomega.OEFlipper(mol.GetActive(), flipperOpts):
-                gen_conf_inner(mol)
+                gen_conf_inner(enantiomer)
         elif ret_code == oeomega.OEOmegaReturnCode_Success:
             oechem.OEWriteMolecule(ofs, mol)
         else:
