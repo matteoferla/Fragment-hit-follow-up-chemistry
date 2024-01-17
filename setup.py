@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='fragment_elaboration_scripts',
-    version='0.1',
+    version='0.1.1',
     packages=find_packages(),
     url='https://github.com/matteoferla/Fragment-hit-follow-up-chemistry',
     license='MIT',
