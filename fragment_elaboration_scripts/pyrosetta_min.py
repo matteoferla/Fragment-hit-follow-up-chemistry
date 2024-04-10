@@ -61,7 +61,7 @@ def main():
     parser.add_argument('-o', '--outfile', help='Outfile', default='blast_hits.csv', type=str)
     parser.add_argument('-w', '--constraint_weight', help='constraint_weight', default=5, type=float)
     parser.add_argument('-c', '--cycles', help='cycles', default=15, type=int)
-    parser.add_argument('-s', '--single_chain', help='keep only first chain', default=True, type=bool)
+    parser.add_argument('-s', '--single_chain', help='keep only first chain', default=False, type=bool)
     parser.add_argument('--ignore_unrecognized_res',
                         help='If PyRosetta does not recognise a residue (chemical component) it will ignore it',
                         default=True, type=bool)
