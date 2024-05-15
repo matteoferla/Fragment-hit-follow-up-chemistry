@@ -1,6 +1,31 @@
 # Ultility scripts
 For full details see [![Read the Docs](https://img.shields.io/readthedocs/fragment-hit-follow-up-chemistry)](https://fragment-hit-follow-up-chemistry.readthedocs.io/en/latest/fragment_elaboration_scripts.html)
 
+## Replacement isomorphism
+
+In X-ray crystallography, the same molecule can be mapped in multiple ways (replacement isomorphisms). 
+This is because the electron density does not reveal the element type.
+An example is terminal amides, which makes elaborations fail if incorrectly mapped.
+
+The script replacement_isomorphism.py expands a list of molecules to include their replacement isomorphisms
+
+```python
+from fragment_elaboration_scripts.replacement_isomorphism import get_replacement_isomorphisms
+from rdkit import Chem
+from fragmenstein import Laboratory, place_input_validator
+hits: List[Chem.Mol] = ...
+isohits = []
+for hit in hits:
+    isohits.extend(get_replacement_isomorphisms(hit))
+df = place_input_validator(pd.DataFrame(dict(name=[h.GetProp('_Name')+'_replaced' for h in isohits],
+                                        hits=[[h] for h in isohits],
+                                        smiles=[Chem.MolToSmiles(h) for h in isohits],
+                                       )))
+lab = Laboratory(pdbblock=Path(f'template.pdb').read_text())
+replaced = lab.place(df)
+... # filter as appropriate
+```
+
 ## Fragment theft
 
 Requires PyMOL. See [retrieve_PDB_ligands.py](fragment_elaboration_scripts/retrieve_PDB_ligands.py) for yaml.
