@@ -6,7 +6,7 @@ This is because these atoms scatter X-rays similarly, resulting in overlapping o
 
 An example is terminal amides, which makes elaborations fail if incorrectly mapped.
 
-This script expand the list of molecules to include all of these possible pseudosymmetric isomorphisms.
+This script expand the list of molecules to include all of these possible configurations.
 """
 
 from typing import List, Dict
