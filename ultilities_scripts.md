@@ -10,20 +10,21 @@ An example is terminal amides, which makes elaborations fail if incorrectly mapp
 The script replacement_isomorphism.py expands a list of molecules to include their replacement isomorphisms
 
 ```python
-from fragment_elaboration_scripts.replacement_isomorphism import get_replacement_isomorphisms
+from fragment_elaboration_scripts.chem_isomorphism import get_chemical_isomorphisms
 from rdkit import Chem
 from fragmenstein import Laboratory, place_input_validator
+
 hits: List[Chem.Mol] = ...
 isohits = []
 for hit in hits:
-    isohits.extend(get_replacement_isomorphisms(hit))
-df = place_input_validator(pd.DataFrame(dict(name=[h.GetProp('_Name')+'_replaced' for h in isohits],
-                                        hits=[[h] for h in isohits],
-                                        smiles=[Chem.MolToSmiles(h) for h in isohits],
-                                       )))
+    isohits.extend(get_chemical_isomorphisms(hit))
+df = place_input_validator(pd.DataFrame(dict(name=[h.GetProp('_Name') + '_replaced' for h in isohits],
+                                             hits=[[h] for h in isohits],
+                                             smiles=[Chem.MolToSmiles(h) for h in isohits],
+                                             )))
 lab = Laboratory(pdbblock=Path(f'template.pdb').read_text())
 replaced = lab.place(df)
-... # filter as appropriate
+...  # filter as appropriate
 ```
 
 ## Fragment theft

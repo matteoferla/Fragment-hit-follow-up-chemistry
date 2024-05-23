@@ -1,15 +1,21 @@
 """
-In X-ray crystallography, the same molecule can be mapped in multiple ways (replacement isomorphisms).
-This is because the electron density does not reveal the element type.
+'Chemical isomorphism' (or 'crystallographic ambiguity')
+refers to the phenomenon where elements of similar electron density,
+such as carbon (C), nitrogen (N), and oxygen (O), cannot be easily distinguished in the electron density map.
+This is because these atoms scatter X-rays similarly, resulting in overlapping or indistinguishable electron density.
+
 An example is terminal amides, which makes elaborations fail if incorrectly mapped.
 
-Expand a list of molecules to include their replacement isomorphisms
+This script expand the list of molecules to include all of these possible pseudosymmetric isomorphisms.
 """
 
 from typing import List, Dict
 from rdkit import Chem
 
-def get_replacement_isomorphisms(mol: Chem.Mol, suffix='-iso') -> List[Chem.Mol]:
+def get_chemical_isomorphisms(mol: Chem.Mol, suffix='-iso') -> List[Chem.Mol]:
+    """
+    Given a molecule, return a list of molecules where crystallographical ambiguity is resolved.
+    """
     query: Chem.Mol = create_unelemental_query(mol)
     # these include all isomorphisms
     to_idx_map = lambda indxs: dict(zip(range(mol.GetNumHeavyAtoms()), indxs))  # noqa
@@ -95,7 +101,7 @@ def main():
         mols = [mol for mol in sdfh]
     isomols = []
     for mol in mols:
-        isomols.extend(get_replacement_isomorphisms(mol))
+        isomols.extend(get_chemical_isomorphisms(mol))
     with Chem.SDWriter(args.output) as sdfh:
         for mol in isomols:
             sdfh.write(mol)
