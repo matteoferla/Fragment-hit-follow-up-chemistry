@@ -58,7 +58,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='Minimise target without electron density')
     parser.add_argument('-t', '--target', help='Reference PDB file', required=True, type=str)
-    parser.add_argument('-o', '--outfile', help='Outfile', default='blast_hits.csv', type=str)
+    parser.add_argument('-o', '--outfile', help='Outfile', default='minimised.pdb', type=str)
     parser.add_argument('-w', '--constraint_weight', help='constraint_weight', default=5, type=float)
     parser.add_argument('-c', '--cycles', help='cycles', default=15, type=int)
     parser.add_argument('-s', '--single_chain', help='keep only first chain', default=False, type=bool)
