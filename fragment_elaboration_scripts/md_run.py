@@ -11,15 +11,17 @@ Bash script to run this:
 
     #!/bin/bash
     source $CONDA_PREFIX/etc/profile.d/conda.sh
+    conda install -n openmm -c conda-forge -c omnia python=3.10 rdkit openff-toolkit openforcefield pdbfixer torch
     conda activate openmm
-    cd 👾👾
     # don't forget to make sure CUDA words:
     # I install torch and use that cudatoolkit as I am too lazy to disinstall the wrong cuda-toolkit
     # that openmm installs.
-    export LD_LIBRARY_PATH = $CONDA_PREFIX/lib/python3.10/site-packages/triton/third_party/cuda
-    export CUDA_HOME = $LD_LIBRARY_PATH
-    export SLACK_WEBHOOK='https://hooks.slack.com/services/👾👾/👾👾'
+    conda env config set var LD_LIBRARY_PATH = $CONDA_PREFIX/lib/python3.10/site-packages/triton/third_party/cuda
+    conda env config set var CUDA_HOME = $CONDA_PREFIX/lib/python3.10/site-packages/triton/third_party/cuda
 
+    cd 👾👾
+    conda activate openmm
+    export SLACK_WEBHOOK='https://hooks.slack.com/services/👾👾/👾👾'
     export TEMPLATE=👾👾/👾👾.pdb
     export VC=👾👾/👾👾.mol;
     export NSTEPS=500_000
