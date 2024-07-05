@@ -2,8 +2,11 @@ from setuptools import setup, find_packages
 
 setup(
     name='fragment_elaboration_scripts',
-    version='0.1.1',
+    version='0.1.2',
     packages=find_packages(),
+    package_dir={'fragment_elaboration_scripts': 'fragment_elaboration_scripts',
+                 'fragalysis_extractor': 'fragalysis_extractor',
+                 },
     url='https://github.com/matteoferla/Fragment-hit-follow-up-chemistry',
     license='MIT',
     author='Matteo Ferla',
