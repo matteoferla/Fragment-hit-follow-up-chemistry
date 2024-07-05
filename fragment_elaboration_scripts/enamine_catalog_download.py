@@ -21,18 +21,15 @@ class DownloadEnamine:
     The catalogue keyword is some uppercase value.
     """
     REAL = [
-        'Enamine_REAL_HAC_6_21_420M_CXSMILES.cxsmiles.bz2',
-        'Enamine_REAL_HAC_22_23_471M_CXSMILES.cxsmiles.bz2',
-        'Enamine_REAL_HAC_24_394M_CXSMILES.cxsmiles.bz2',
-        'Enamine_REAL_HAC_25_557M_CXSMILES.cxsmiles.bz2',
-        'Enamine_REAL_HAC_26_833M_Part_1_CXSMILES.cxsmiles.bz2',
-        'Enamine_REAL_HAC_26_833M_Part_2_CXSMILES.cxsmiles.bz2',
-        'Enamine_REAL_HAC_27_1.1B_Part_1_CXSMILES.cxsmiles.bz2',
-        'Enamine_REAL_HAC_27_1.1B_Part_2_CXSMILES.cxsmiles.bz2',
-        'Enamine_REAL_HAC_28_1.2B_Part_1_CXSMILES.cxsmiles.bz2',
-        'Enamine_REAL_HAC_28_1.2B_Part_2_CXSMILES.cxsmiles.bz2',
-        'Enamine_REAL_HAC_29_38_988M_Part_1_CXSMILES.cxsmiles.bz2',
-        'Enamine_REAL_HAC_29_38_988M_Part_2_CXSMILES.cxsmiles.bz2',
+        'Enamine_REAL_HAC_11_21_666M_CXSMILES.cxsmiles.bz2',
+        'Enamine_REAL_HAC_22_23_828M_CXSMILES.cxsmiles.bz2',
+        'Enamine_REAL_HAC_24_686M_CXSMILES.cxsmiles.bz2',
+        'Enamine_REAL_HAC_25_789M_CXSMILES.cxsmiles.bz2',
+        'Enamine_REAL_HAC_26_766M_CXSMILES.cxsmiles.bz2',
+        'Enamine_REAL_HAC_27_872M_CXSMILES.cxsmiles.bz2',
+        'Enamine_REAL_HAC_28_803M_CXSMILES.cxsmiles.bz2',
+        'Enamine_REAL_HAC_29_38_1.3B_Part_1_CXSMILES.cxsmiles.bz2',
+        'Enamine_REAL_HAC_29_38_1.3B_Part_2_CXSMILES.cxsmiles.bz2'
     ]
 
     def __init__(self, username, password):

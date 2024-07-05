@@ -62,3 +62,23 @@ def smiles_to_iupac(smiles: str, raise_error: bool = True) -> str:
         response.raise_for_status()
     else:
         return ''
+
+# --------------------------------------------------------------------------------------------
+
+from typing import List
+from rdkit import Chem
+from rdkit.Chem import AllChem
+def reorient(wrong_ref: Chem.Mol, right_ref: Chem.Mol, mols: List[Chem.Mol]):
+    """
+    Given two identical reference Chem.Mol in two different orientations and a list of Chem.Mol (``mols``),
+    oriented in line with `wrong_ref``,
+    reorient the list of Chem.Mol to match the ``right_ref`` reference.
+
+    :param wrong_ref:
+    :param right_ref:
+    :param mols:
+    :return:
+    """
+    affine_matrix = AllChem.GetAlignmentTransform(wrong_ref, right_ref)[1]
+    for wrong in mols:
+        AllChem.TransformConformer(wrong.GetConformer(), affine_matrix)  # this is in place

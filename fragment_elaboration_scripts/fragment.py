@@ -1,4 +1,4 @@
-from rdkit import Chem
+from rdkit import Chem, RDLogger
 from rdkit.Chem import BRICS, AllChem
 from typing import List, Sequence
 from collections import Counter
@@ -82,9 +82,9 @@ def fragment(mol: Chem.Mol, minFragmentSize=4,
     which does prevent overriding... but requires deadkeys for typing.
     Also, I am not sure if stress changes in US pronunciation from noun to verb.
     """
-
     if mol is None:
         return []
+    RDLogger.DisableLog('rdApp.*')
     name = mol.GetProp('_Name')
     for atom in mol.GetAtoms():
         atom.SetProp('brics_ori_name', name)
@@ -132,6 +132,7 @@ def fragment(mol: Chem.Mol, minFragmentSize=4,
             atom.SetAtomicNum(0)
             atom.SetIsotope(0)
         fragments.append(fragment)
+    RDLogger.EnableLog('rdApp.*')
     return fragments
 
 

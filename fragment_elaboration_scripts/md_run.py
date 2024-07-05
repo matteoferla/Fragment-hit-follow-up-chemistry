@@ -4,6 +4,9 @@ run $NSTEPS 40 fs steps of OpenMM simulation in explicit solvent
 and save a pickled DataFrame of the RMSD of the ligand to the template.
 
 At 40 fs steps, 500_000 steps is 20 ns.
+1_250_000 steps is 50 ns.
+2_500_000 steps is 100 ns.
+
 
 Bash script to run this:
 
