@@ -15,6 +15,14 @@ class Extractor:
                  monomer_chains: str = 'A',
                  lig_resn='LIG', fluff_marker='_'
                  ):
+        """
+
+        :param folder:
+        :param ref_path: path to the reference.pdb (assumed if not given)
+        :param monomer_chains: AB ... default A
+        :param lig_resn: assumed LIG if not given
+        :param fluff_marker: just a space for the names
+        """
         self.folder = Path(folder)
         self.paths, self.reference_path = self.parse_paths(folder, ref_path)
         self.pymol = None
@@ -22,7 +30,7 @@ class Extractor:
         self.lig_resn = lig_resn
         self.fluff_marker = fluff_marker
 
-    def __call__(self, pymol=None):
+    def __call__(self, pymol=None) -> List[Dict]:
         if pymol is None:
             with pymol2.PyMOL() as pymol:
                 self.pymol = pymol

@@ -85,7 +85,7 @@ def read_metadata(path, library: pd.DataFrame) -> pd.DataFrame:
             break
     meta['desalted_smiles'] = meta[smiles_col].apply(lambda smiles: sorted(smiles.split('.'), key=len, reverse=True)[0])
     meta['mol'] = meta.desalted_smiles.apply(Chem.MolFromSmiles)
-    meta.apply(lambda row: row.mol.SetProp('_Name', row[comp_code_col]), 1)
+    meta.apply(lambda row: row.mol.SetProp('_Name', str(row[comp_code_col])), 1)
     meta['xcode'] = meta[xstal_col].str.extract(r'(x\d+)', expand=True)[0]
     populate_bad_inchi(meta, 'mol')
     # true_poised = df.loc[df[comp_code_col].isin(library['Catalog ID'].to_list())]

@@ -15,7 +15,8 @@ from rdkit import Chem
 
 import pymol2
 from rdkit import Chem
-import fragalysis_extractor as frageximport pandas as pd
+import fragalysis_extractor as fragex
+import pandas as pd
 from typing import List
 from rdkit import Chem
 from rdkit.Chem import AllChem, PandasTools, SaltRemover
