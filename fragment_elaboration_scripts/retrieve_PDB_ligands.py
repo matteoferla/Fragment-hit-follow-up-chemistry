@@ -45,7 +45,6 @@ dependencies:
 
 """
 import pandas as pd
-import pymol2
 import re, logging
 from typing import Dict, List, Tuple
 import chempy
@@ -85,6 +84,8 @@ def get_sequences(reference: str) -> List[Tuple[str, str]]:
     :param reference: can be a filename or a PDB block (loaded as 'reference' `by load_reference``)
     :return: list of chain to sequence sorted by length (longest first)
     """
+    import pymol2
+
     with pymol2.PyMOL() as pymol:
         load_reference(pymol, reference)
         pymol.cmd.remove('not polymer')
@@ -112,6 +113,8 @@ def extract_pdbblocks(reference: str,
     pdb_blocks: Dict[str, str] = {}
     details: Dict[str, Dict] = {}
     chemcomp_tally = defaultdict(int)
+    import pymol2
+
     with pymol2.PyMOL() as pymol, contextlib.suppress(Exception):
         pymol.cmd.set('pdb_conect_all', 'on')
         load_reference(pymol, reference)
@@ -227,8 +230,7 @@ def polymer():
     # HACK FOR POLYMER
 
     xstal_name: str = '👾👾👾'
-
-    from collections import defaultdict
+    import pymol2
 
     with pymol2.PyMOL() as pymol:
         pymol.cmd.load(reference, 'reference')
