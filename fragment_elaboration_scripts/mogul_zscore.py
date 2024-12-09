@@ -63,7 +63,7 @@ def get_mean_and_max_z_score(mol: molecule.Molecule) -> Tuple[float, float]:
     return np.nanmean(z_scores), np.nanmax(z_scores)
 
 def parse(infile, outfile):
-    assert '.json' in outfile, 'outfile must be a json file.
+    assert '.json' in outfile, 'outfile must be a json file.'
     mol_reader = io.MoleculeReader(infile)
     mol: molecule.Molecule
     data = []
